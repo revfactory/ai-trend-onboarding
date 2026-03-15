@@ -1,0 +1,1890 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch4. AI가 바꾸는 세상 — AI 트렌드 온보딩</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --c-primary: #3498DB;
+  --c-accent: #00D4AA;
+  --c-search: #4A90D9;
+  --c-coding: #E74C8B;
+  --c-agent: #9B59B6;
+  --c-design: #F39C12;
+  --c-work: #00D4AA;
+  --c-hardware: #E74C3C;
+  --bg-dark: #0a0a0f;
+  --text-primary: #f0f0f5;
+  --text-secondary: #d0d0dd;
+}
+
+html { scroll-behavior: auto; }
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== PARTICLE CANVAS ===== */
+#particles {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ===== GRADIENT OVERLAY ===== */
+#gradientBg {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  transition: background 1.5s ease;
+  background: radial-gradient(ellipse at 30% 50%, rgba(52,152,219,0.3) 0%, transparent 70%);
+}
+
+/* ===== LEFT NAV ===== */
+#side-nav {
+  position: fixed;
+  left: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+#side-nav .nav-line {
+  width: 2px;
+  height: 28px;
+  background: rgba(255,255,255,0.15);
+  transition: background 0.4s;
+}
+#side-nav .nav-line.active { background: rgba(255,255,255,0.6); }
+#side-nav .nav-dot {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.2);
+  background: rgba(10,10,15,0.8);
+  backdrop-filter: blur(10px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+}
+#side-nav .nav-dot:hover {
+  transform: scale(1.15);
+  border-color: rgba(255,255,255,0.6);
+}
+#side-nav .nav-dot.active {
+  transform: scale(1.2);
+  border-color: var(--active-color, #fff);
+  box-shadow: 0 0 20px var(--active-color, #fff), 0 0 40px rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.1);
+}
+#side-nav .nav-dot .label {
+  position: absolute;
+  left: 56px;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s;
+  pointer-events: none;
+}
+#side-nav .nav-dot:hover .label,
+#side-nav .nav-dot.active .label {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--text-primary);
+}
+
+/* ===== HERO ===== */
+.hero {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  padding: 0 20px;
+}
+.hero-subtitle {
+  font-size: clamp(14px, 2vw, 18px);
+  font-weight: 300;
+  color: var(--text-secondary);
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.hero-title {
+  font-size: clamp(36px, 7vw, 80px);
+  font-weight: 900;
+  line-height: 1.15;
+  margin-bottom: 32px;
+  background: linear-gradient(135deg, #3498DB, #00D4AA);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 6s ease infinite;
+}
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.hero-desc {
+  font-size: clamp(15px, 2vw, 20px);
+  font-weight: 300;
+  color: var(--text-secondary);
+  max-width: 750px;
+  line-height: 1.8;
+  margin-bottom: 40px;
+}
+.hero-quote {
+  padding: 24px 40px;
+  border-left: 3px solid var(--c-accent);
+  background: rgba(0,212,170,0.05);
+  border-radius: 0 16px 16px 0;
+  max-width: 700px;
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  margin-bottom: 48px;
+  text-align: left;
+}
+.scroll-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: float 2s ease-in-out infinite;
+}
+.scroll-indicator span { font-size: 13px; color: var(--text-secondary); letter-spacing: 3px; }
+.scroll-arrow {
+  width: 24px; height: 24px;
+  border-right: 2px solid var(--text-secondary);
+  border-bottom: 2px solid var(--text-secondary);
+  transform: rotate(45deg);
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(10px); }
+}
+
+/* ===== SECTIONS ===== */
+.content-section {
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+  padding: 120px 0;
+}
+.content-section .container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 100px 0 120px;
+}
+
+.section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 24px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  margin-bottom: 24px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+}
+.section-badge .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+
+.section-title {
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+.section-summary {
+  font-size: clamp(16px, 2vw, 20px);
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  max-width: 800px;
+  margin-bottom: 60px;
+}
+.sub-heading {
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 700;
+  margin: 60px 0 20px;
+}
+.sub-desc {
+  font-size: 16px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 30px;
+  max-width: 800px;
+}
+
+/* ===== SECTION DIVIDER ===== */
+.section-divider {
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+.divider-line {
+  width: 1px;
+  height: 100px;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+/* ===== AI SERVICE MAP CARDS ===== */
+.service-map-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin: 40px 0;
+}
+.category-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+}
+.category-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 4px;
+  border-radius: 20px 20px 0 0;
+}
+.category-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255,255,255,0.15);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.category-card.expanded {
+  grid-column: 1 / -1;
+}
+.category-header {
+  padding: 28px 28px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.category-icon {
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.category-info h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.category-info p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 300;
+}
+.category-toggle {
+  margin-left: auto;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: transparent;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+.category-card.expanded .category-toggle {
+  transform: rotate(180deg);
+}
+.category-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.category-card.expanded .category-body {
+  max-height: 800px;
+}
+.category-body-inner {
+  padding: 0 28px 28px;
+}
+.service-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 14px;
+}
+.service-row:last-child { border-bottom: none; }
+.service-row .name { font-weight: 700; flex: 1; }
+.service-row .provider { color: var(--text-secondary); flex: 1; font-weight: 300; }
+.service-row .detail { color: var(--text-secondary); flex: 1.5; font-weight: 300; text-align: right; }
+
+/* ===== DAY TIMELINE ===== */
+.day-timeline {
+  position: relative;
+  margin: 60px 0;
+}
+.day-timeline::before {
+  content: '';
+  position: absolute;
+  left: 30px;
+  top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, var(--c-primary), var(--c-accent));
+  border-radius: 3px;
+}
+.day-item {
+  position: relative;
+  padding-left: 80px;
+  margin-bottom: 48px;
+  opacity: 0;
+}
+.day-dot {
+  position: absolute;
+  left: 18px;
+  top: 4px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 3px solid;
+  background: var(--bg-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  z-index: 2;
+}
+.day-time {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.day-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.day-desc {
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+.day-service-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 10px;
+  background: rgba(255,255,255,0.08);
+  margin-right: 6px;
+}
+
+/* ===== MODEL-SERVICE MAPPING ===== */
+.mapping-diagram {
+  margin: 40px 0;
+  position: relative;
+}
+.mapping-layer {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 40px;
+  position: relative;
+}
+.mapping-layer-label {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+  padding: 8px 24px;
+  border-radius: 8px;
+  display: inline-block;
+}
+.mapping-node {
+  padding: 14px 22px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  transition: all 0.3s;
+  cursor: default;
+  position: relative;
+  min-width: 110px;
+}
+.mapping-node:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+.mapping-node .node-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 300;
+  margin-top: 4px;
+}
+.mapping-arrow {
+  text-align: center;
+  margin: 20px 0;
+  font-size: 24px;
+  color: var(--text-secondary);
+  letter-spacing: 20px;
+}
+.mapping-arrow-label {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: -10px;
+  margin-bottom: 20px;
+}
+
+/* ===== MODEL-SERVICE TABLE ===== */
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 40px 0;
+  font-size: 14px;
+}
+.data-table thead th {
+  padding: 16px 20px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-secondary);
+}
+.data-table tbody td {
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-weight: 400;
+}
+.data-table tbody tr {
+  transition: background 0.3s;
+}
+.data-table tbody tr:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+/* ===== COUNTER ROW ===== */
+.counter-row {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  margin: 40px 0;
+}
+.counter-item {
+  text-align: center;
+  flex: 1;
+  min-width: 140px;
+}
+.counter-number {
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.counter-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* ===== BIZ CARDS ===== */
+.biz-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  margin: 40px 0;
+}
+.biz-card {
+  padding: 28px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.4s;
+}
+.biz-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255,255,255,0.15);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+.biz-card .biz-name {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.biz-card .biz-arr {
+  font-size: 32px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+.biz-card .biz-val {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.biz-card .biz-note {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+/* ===== INVEST TIMELINE ===== */
+.invest-timeline {
+  margin: 40px 0;
+}
+.invest-item {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: all 0.3s;
+}
+.invest-item:hover { background: rgba(255,255,255,0.02); padding-left: 12px; }
+.invest-date {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-accent);
+  min-width: 80px;
+  flex-shrink: 0;
+}
+.invest-info h4 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.invest-info .amount {
+  font-size: 20px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+.invest-info .meaning {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 300;
+}
+
+/* ===== INDUSTRY TABLE ===== */
+.industry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 40px 0;
+}
+.industry-card {
+  padding: 24px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.3s;
+}
+.industry-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255,255,255,0.15);
+}
+.industry-card h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.industry-card .usage {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+.industry-card .example {
+  font-size: 12px;
+  padding: 4px 10px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 6px;
+  display: inline-block;
+  color: var(--c-accent);
+}
+
+/* ===== MEGATREND CARDS ===== */
+.trend-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 40px 0;
+}
+.trend-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.4s;
+}
+.trend-card:hover {
+  border-color: rgba(255,255,255,0.15);
+}
+.trend-card.expanded {
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.trend-header {
+  padding: 28px 32px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.trend-num {
+  font-size: 40px;
+  font-weight: 900;
+  flex-shrink: 0;
+  width: 56px;
+  background: linear-gradient(135deg, var(--c-primary), var(--c-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.trend-headline h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.trend-headline p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 300;
+}
+.trend-expand-icon {
+  margin-left: auto;
+  font-size: 18px;
+  color: var(--text-secondary);
+  transition: transform 0.3s;
+}
+.trend-card.expanded .trend-expand-icon {
+  transform: rotate(180deg);
+}
+.trend-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+}
+.trend-card.expanded .trend-body {
+  max-height: 400px;
+}
+.trend-body-inner {
+  padding: 0 32px 28px 108px;
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+/* ===== QUOTE BOX ===== */
+.quote-box {
+  padding: 32px 40px;
+  border-left: 3px solid;
+  background: rgba(255,255,255,0.02);
+  border-radius: 0 16px 16px 0;
+  margin: 40px 0;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+/* ===== KEY SUMMARY ===== */
+.summary-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 40px 0;
+}
+.summary-card {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  padding: 28px 32px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px;
+  transition: all 0.5s;
+  cursor: default;
+}
+.summary-card:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.12);
+  transform: translateX(10px);
+}
+.summary-num {
+  font-size: 40px;
+  font-weight: 900;
+  flex-shrink: 0;
+  width: 50px;
+  background: linear-gradient(135deg, var(--c-primary), var(--c-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.summary-content h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.summary-content p {
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ===== FAILED HARDWARE ===== */
+.fail-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 40px 0;
+}
+.fail-card {
+  padding: 28px;
+  border-radius: 16px;
+  background: rgba(231,76,60,0.04);
+  border: 1px solid rgba(231,76,60,0.15);
+  transition: all 0.3s;
+}
+.fail-card:hover { transform: translateY(-3px); }
+.fail-card h4 { font-size: 18px; font-weight: 700; color: #E74C3C; margin-bottom: 8px; }
+.fail-card .price { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; }
+.fail-card .result { font-size: 14px; color: #E74C3C; font-weight: 500; margin-bottom: 8px; }
+.fail-card .lesson { font-size: 13px; color: var(--text-secondary); font-weight: 300; line-height: 1.6; }
+
+/* ===== FOOTER NAV ===== */
+.footer-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 40px 0;
+  margin-top: 40px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.footer-nav a {
+  color: var(--c-accent);
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s;
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,212,170,0.2);
+}
+.footer-nav a:hover {
+  background: rgba(0,212,170,0.1);
+  border-color: rgba(0,212,170,0.4);
+}
+
+/* ===== FOOTER ===== */
+.footer {
+  text-align: center;
+  padding: 60px 20px;
+  position: relative;
+  z-index: 1;
+}
+.footer p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+.footer a { color: var(--c-accent); text-decoration: none; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  #side-nav { left: 12px; }
+  #side-nav .nav-dot { width: 36px; height: 36px; font-size: 10px; }
+  #side-nav .nav-dot .label { display: none; }
+  #side-nav .nav-line { height: 16px; }
+  .content-section .container {
+    padding: 0 20px 0 64px;
+  }
+  .service-map-grid { grid-template-columns: 1fr; }
+  .counter-row { gap: 20px; }
+  .biz-cards { grid-template-columns: 1fr; }
+  .fail-cards { grid-template-columns: 1fr; }
+  .industry-grid { grid-template-columns: 1fr; }
+  .mapping-layer { flex-direction: column; align-items: center; }
+  .footer-nav { flex-direction: column; gap: 16px; }
+  .trend-body-inner { padding-left: 32px; }
+  .day-item { padding-left: 70px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div id="gradientBg"></div>
+
+<!-- ===== LEFT NAV ===== -->
+<nav id="side-nav">
+  <div class="nav-dot" data-section="hero" style="--active-color:#3498DB;" onclick="smoothScroll('hero')">
+    TOP
+    <span class="label">처음으로</span>
+  </div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-section="sec-map" style="--active-color:#4A90D9;" onclick="smoothScroll('sec-map')">
+    4.1
+    <span class="label">서비스 지도</span>
+  </div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-section="sec-day" style="--active-color:#E74C8B;" onclick="smoothScroll('sec-day')">
+    DAY
+    <span class="label">하루 타임라인</span>
+  </div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-section="sec-engine" style="--active-color:#9B59B6;" onclick="smoothScroll('sec-engine')">
+    4.2
+    <span class="label">엔진과 완성차</span>
+  </div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-section="sec-biz" style="--active-color:#F39C12;" onclick="smoothScroll('sec-biz')">
+    4.3
+    <span class="label">비즈니스 수치</span>
+  </div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-section="sec-trend" style="--active-color:#00D4AA;" onclick="smoothScroll('sec-trend')">
+    4.4
+    <span class="label">5대 메가트렌드</span>
+  </div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-section="sec-summary" style="--active-color:#3498DB;" onclick="smoothScroll('sec-summary')">
+    4.5
+    <span class="label">핵심 정리</span>
+  </div>
+</nav>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero" id="hero">
+  <div class="hero-subtitle">CHAPTER 04</div>
+  <h1 class="hero-title">AI가 바꾸는 세상</h1>
+  <p class="hero-desc">AI는 더 이상 연구실의 기술이 아니다 -- 검색, 코딩, 디자인, 영상, 업무 자동화까지, 이미 당신의 일상 곳곳에 침투해 있으며 수천억 달러의 산업을 만들어내고 있다.</p>
+  <div class="hero-quote">
+    월요일 아침, 당신이 출근합니다. Slack을 열면 AI가 주말 동안 쌓인 200개의 메시지를 세 줄로 요약해줍니다. 메일함의 긴 리포트는 Notion AI가 핵심만 뽑아놓았고, 오후 회의 자료는 v0에 한 줄 입력하면 React 컴포넌트가 뚝딱 나옵니다. 이것이 <strong style="color:var(--text-primary);">2026년 3월 현재, 실제로 가능한 일상</strong>입니다.
+  </div>
+  <div class="scroll-indicator">
+    <span>SCROLL</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- ==================== 4.1 AI 서비스 지도 ==================== -->
+<section class="content-section" id="sec-map">
+  <div class="container">
+    <div class="section-badge" style="border-color: rgba(74,144,217,0.3);">
+      <div class="dot" style="background: var(--c-search);"></div>
+      SECTION 4.1
+    </div>
+    <h2 class="section-title" style="color: var(--c-primary);">분야별 AI 서비스 지도</h2>
+    <p class="section-summary">범용 모델(GPT, Claude, Gemini 등)이 "엔진"이라면, 여기서 소개하는 서비스들은 그 엔진을 탑재한 "완성차"입니다. 각 카테고리를 클릭해서 상세 서비스를 살펴보세요.</p>
+
+    <div class="service-map-grid">
+
+      <!-- A. AI 검색 -->
+      <div class="category-card" onclick="toggleCategory(this)" style="--cat-color: var(--c-search);">
+        <div style="position:absolute;top:0;left:0;width:100%;height:4px;background:var(--c-search);border-radius:20px 20px 0 0;"></div>
+        <div class="category-header">
+          <div class="category-icon" style="background:rgba(74,144,217,0.15);color:var(--c-search);">&#128269;</div>
+          <div class="category-info">
+            <h3>AI 검색</h3>
+            <p>"구글링의 종말?"</p>
+          </div>
+          <div class="category-toggle">&#9660;</div>
+        </div>
+        <div class="category-body">
+          <div class="category-body-inner">
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px;">10개의 파란 링크를 훑어보던 시대가 저물고 있습니다. AI 검색은 질문을 던지면 여러 웹 페이지를 종합해서 하나의 답변으로 돌려줍니다.</p>
+            <div class="service-row"><span class="name" style="color:var(--c-search);">Perplexity</span><span class="provider">Perplexity AI</span><span class="detail">월 4,500만 사용자</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-search);">ChatGPT Search</span><span class="provider">OpenAI</span><span class="detail">대화형 검색, 웹 브라우징</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-search);">Gemini</span><span class="provider">Google</span><span class="detail">Google 생태계 전체 연동</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-search);">Arc Search</span><span class="provider">The Browser Co.</span><span class="detail">브라우저 네이티브 AI 검색</span></div>
+            <p style="font-size:13px;color:var(--text-secondary);margin-top:14px;line-height:1.6;">ChatGPT 점유율 87% → 68% 하락, Gemini 18.2% 급성장. AI 검색 시장은 용도와 생태계에 따라 분화 중.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- B. AI 코딩 -->
+      <div class="category-card" onclick="toggleCategory(this)" style="--cat-color: var(--c-coding);">
+        <div style="position:absolute;top:0;left:0;width:100%;height:4px;background:var(--c-coding);border-radius:20px 20px 0 0;"></div>
+        <div class="category-header">
+          <div class="category-icon" style="background:rgba(231,76,139,0.15);color:var(--c-coding);">&#128187;</div>
+          <div class="category-info">
+            <h3>AI 코딩 도구</h3>
+            <p>개발자의 새로운 짝꿍</p>
+          </div>
+          <div class="category-toggle">&#9660;</div>
+        </div>
+        <div class="category-body">
+          <div class="category-body-inner">
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px;">"바이브 코딩(Vibe Coding)" 시대. AI 코딩은 가장 폭발적으로 성장한 카테고리입니다.</p>
+            <div class="service-row"><span class="name" style="color:var(--c-coding);">Cursor</span><span class="provider">Anysphere</span><span class="detail">ARR $20억+, IDE 올인원</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-coding);">GitHub Copilot</span><span class="provider">GitHub/MS</span><span class="detail">엔터프라이즈 표준</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-coding);">Windsurf</span><span class="provider">Windsurf</span><span class="detail">인라인 완성, 저렴한 가격</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-coding);">Claude Code</span><span class="provider">Anthropic</span><span class="detail">터미널 기반, 코드베이스 이해</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-coding);">Replit Agent</span><span class="provider">Replit</span><span class="detail">브라우저 기반, 즉시 배포</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-coding);">Codex CLI</span><span class="provider">OpenAI</span><span class="detail">오픈소스, 로컬 에이전트</span></div>
+            <p style="font-size:13px;color:var(--c-coding);margin-top:14px;font-weight:600;">Cursor: 24개월 만에 ARR $10억 돌파, B2B SaaS 역사상 최고속 성장. 기업가치 $293억.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- C. AI 에이전트 -->
+      <div class="category-card" onclick="toggleCategory(this)" style="--cat-color: var(--c-agent);">
+        <div style="position:absolute;top:0;left:0;width:100%;height:4px;background:var(--c-agent);border-radius:20px 20px 0 0;"></div>
+        <div class="category-header">
+          <div class="category-icon" style="background:rgba(155,89,182,0.15);color:var(--c-agent);">&#129302;</div>
+          <div class="category-info">
+            <h3>AI 에이전트</h3>
+            <p>대화에서 행동으로</p>
+          </div>
+          <div class="category-toggle">&#9660;</div>
+        </div>
+        <div class="category-body">
+          <div class="category-body-inner">
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px;">AI가 환경을 탐색하고, 도구를 사용하고, 멀티스텝 작업을 자율적으로 수행합니다.</p>
+            <div class="service-row"><span class="name" style="color:var(--c-agent);">Devin</span><span class="provider">Cognition</span><span class="detail">완전 자율 코딩 에이전트</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-agent);">Manus</span><span class="provider">Manus AI</span><span class="detail">72시간 내 18만 사용자</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-agent);">AutoGPT</span><span class="provider">오픈소스</span><span class="detail">자율 에이전트 프레임워크</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-agent);">CrewAI</span><span class="provider">CrewAI</span><span class="detail">Fortune 500의 40% 채택</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-agent);">LangChain</span><span class="provider">LangChain</span><span class="detail">GitHub 87K 스타</span></div>
+            <p style="font-size:13px;color:var(--text-secondary);margin-top:14px;line-height:1.6;">시장 규모: 37억$ → 73.8억$ (2년 2배), 2032년 1,036억$ 전망. Meta가 Manus를 20~30억$에 인수 발표(2025.12).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- D. AI 디자인 -->
+      <div class="category-card" onclick="toggleCategory(this)" style="--cat-color: var(--c-design);">
+        <div style="position:absolute;top:0;left:0;width:100%;height:4px;background:var(--c-design);border-radius:20px 20px 0 0;"></div>
+        <div class="category-header">
+          <div class="category-icon" style="background:rgba(243,156,18,0.15);color:var(--c-design);">&#127912;</div>
+          <div class="category-info">
+            <h3>AI 디자인 & 영상</h3>
+            <p>텍스트 한 줄이면 OK</p>
+          </div>
+          <div class="category-toggle">&#9660;</div>
+        </div>
+        <div class="category-body">
+          <div class="category-body-inner">
+            <p style="font-size:13px;font-weight:600;color:var(--c-design);margin-bottom:12px;">디자인 도구</p>
+            <div class="service-row"><span class="name" style="color:var(--c-design);">v0</span><span class="provider">Vercel</span><span class="detail">텍스트 → React UI, 즉시 배포</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-design);">Figma AI</span><span class="provider">Figma</span><span class="detail">레이아웃 제안, 컴포넌트 자동생성</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-design);">Canva AI</span><span class="provider">Canva</span><span class="detail">편집 가능 레이어, 3D, 브랜드 키트</span></div>
+            <p style="font-size:13px;font-weight:600;color:var(--c-design);margin:16px 0 12px;">영상 편집 도구</p>
+            <div class="service-row"><span class="name" style="color:var(--c-design);">CapCut AI</span><span class="provider">ByteDance</span><span class="detail">자동 자막 95%, 350+ AI 음성</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-design);">Descript</span><span class="provider">Descript</span><span class="detail">문서처럼 영상 편집</span></div>
+            <p style="font-size:13px;color:var(--text-secondary);margin-top:14px;line-height:1.6;">Descript: 텍스트 원고에서 문장을 삭제하면 해당 영상 구간이 함께 잘립니다. 워드 프로세서를 쓸 줄 아는 사람이면 영상 편집 가능.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- E. 업무 자동화 -->
+      <div class="category-card" onclick="toggleCategory(this)" style="--cat-color: var(--c-work);">
+        <div style="position:absolute;top:0;left:0;width:100%;height:4px;background:var(--c-work);border-radius:20px 20px 0 0;"></div>
+        <div class="category-header">
+          <div class="category-icon" style="background:rgba(0,212,170,0.15);color:var(--c-work);">&#9889;</div>
+          <div class="category-info">
+            <h3>업무 자동화</h3>
+            <p>AI가 사무실에 출근하다</p>
+          </div>
+          <div class="category-toggle">&#9660;</div>
+        </div>
+        <div class="category-body">
+          <div class="category-body-inner">
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px;">이미 쓰고 있는 도구 안에 AI가 들어왔습니다. Word, Excel, PPT, Slack, Notion 모두.</p>
+            <div class="service-row"><span class="name" style="color:var(--c-work);">MS 365 Copilot</span><span class="provider">Microsoft</span><span class="detail">Word/Excel/PPT/Teams 통합</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-work);">Notion AI</span><span class="provider">Notion</span><span class="detail">문서 요약/작성/번역, Q&A</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-work);">Slack AI</span><span class="provider">Salesforce</span><span class="detail">채널 요약, 자동 응답</span></div>
+            <div class="service-row"><span class="name" style="color:var(--c-work);">Zapier AI</span><span class="provider">Zapier</span><span class="detail">자연어 자동화 워크플로</span></div>
+            <p style="font-size:13px;color:var(--text-secondary);margin-top:14px;line-height:1.6;">"지난주 마케팅 채널 논의 요약해줘" → 핵심 결정사항과 액션 아이템 정리. "분기 매출 PPT 만들어줘" → 초안 생성.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- F. AI 하드웨어 -->
+      <div class="category-card" onclick="toggleCategory(this)" style="--cat-color: var(--c-hardware);">
+        <div style="position:absolute;top:0;left:0;width:100%;height:4px;background:var(--c-hardware);border-radius:20px 20px 0 0;"></div>
+        <div class="category-header">
+          <div class="category-icon" style="background:rgba(231,76,60,0.15);color:var(--c-hardware);">&#128683;</div>
+          <div class="category-info">
+            <h3>AI 하드웨어</h3>
+            <p>아직은 시기상조</p>
+          </div>
+          <div class="category-toggle">&#9660;</div>
+        </div>
+        <div class="category-body">
+          <div class="category-body-inner">
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px;">모든 AI 서비스가 성공한 것은 아닙니다. AI 전용 하드웨어들은 뼈아픈 실패를 맛보았습니다.</p>
+            <div class="fail-cards" style="margin:0;">
+              <div class="fail-card" style="margin:0;">
+                <h4>Humane AI Pin</h4>
+                <div class="price">$699 + $24/월</div>
+                <div class="result">HP가 $1.16억에 인수, 서버 종료로 기기 벽돌화</div>
+                <div class="lesson">스마트폰 대체는 시기상조</div>
+              </div>
+              <div class="fail-card" style="margin:0;">
+                <h4>Rabbit R1</h4>
+                <div class="price">$199</div>
+                <div class="result">10만 대 사전예약 후 5개월 만에 활성 사용자 5,000명 (95% 이탈)</div>
+                <div class="lesson">창업자 본인이 "너무 일찍 출시" 인정</div>
+              </div>
+            </div>
+            <p style="font-size:13px;color:var(--text-secondary);margin-top:16px;line-height:1.6;">"스마트폰이 곧 같은 기능을 제공할 텐데, 소비자가 별도 기기를 살 이유가 없다" -- 새 기술은 기존 습관을 이길 만큼의 압도적 이점이 필요합니다.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ==================== 하루 타임라인 ==================== -->
+<section class="content-section" id="sec-day">
+  <div class="container">
+    <div class="section-badge" style="border-color: rgba(231,76,139,0.3);">
+      <div class="dot" style="background: var(--c-coding);"></div>
+      A DAY WITH AI
+    </div>
+    <h2 class="section-title" style="background: linear-gradient(135deg, var(--c-primary), var(--c-accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">AI와 함께하는 하루</h2>
+    <p class="section-summary">아침 출근부터 저녁 퇴근까지, 2026년 직장인의 하루를 따라가 봅니다.</p>
+
+    <div class="day-timeline">
+
+      <div class="day-item">
+        <div class="day-dot" style="border-color: var(--c-primary);">&#9728;</div>
+        <div class="day-time" style="color: var(--c-primary);">08:30 AM -- 출근</div>
+        <div class="day-title">Slack AI로 200개 메시지를 3줄 요약</div>
+        <div class="day-desc">주말 동안 쌓인 200개의 메시지를 일일이 읽을 필요 없습니다. Slack AI가 핵심 결정 사항과 액션 아이템을 정리해서 보여줍니다.</div>
+        <span class="day-service-tag" style="color: var(--c-work);">Slack AI</span>
+      </div>
+
+      <div class="day-item">
+        <div class="day-dot" style="border-color: #60A5FA;">&#9749;</div>
+        <div class="day-time" style="color: #60A5FA;">09:00 AM -- 메일 확인</div>
+        <div class="day-title">Notion AI가 긴 리포트의 핵심만 추출</div>
+        <div class="day-desc">메일함의 긴 리포트는 Notion AI가 이미 핵심만 뽑아놓았습니다. 10페이지 문서를 3분 만에 파악합니다.</div>
+        <span class="day-service-tag" style="color: var(--c-work);">Notion AI</span>
+      </div>
+
+      <div class="day-item">
+        <div class="day-dot" style="border-color: var(--c-coding);">&#128187;</div>
+        <div class="day-time" style="color: var(--c-coding);">10:00 AM -- 개발 업무</div>
+        <div class="day-title">Cursor와 함께 바이브 코딩</div>
+        <div class="day-desc">API 엔드포인트 구현을 AI와 대화하며 진행합니다. 테스트 코드도 자동 생성. 예전 같으면 반나절 걸릴 작업이 2시간 만에 끝납니다.</div>
+        <span class="day-service-tag" style="color: var(--c-coding);">Cursor</span>
+        <span class="day-service-tag" style="color: var(--c-coding);">Claude Code</span>
+      </div>
+
+      <div class="day-item">
+        <div class="day-dot" style="border-color: var(--c-design);">&#127912;</div>
+        <div class="day-time" style="color: var(--c-design);">14:00 PM -- 오후 회의</div>
+        <div class="day-title">v0으로 대시보드 컴포넌트 즉석 생성</div>
+        <div class="day-desc">"분기 매출 대시보드 만들어줘"라고 한 줄 입력하면 React 컴포넌트가 뚝딱 나옵니다. 회의 중에 바로 프로토타입을 보여줄 수 있습니다.</div>
+        <span class="day-service-tag" style="color: var(--c-design);">v0</span>
+        <span class="day-service-tag" style="color: var(--c-design);">MS 365 Copilot</span>
+      </div>
+
+      <div class="day-item">
+        <div class="day-dot" style="border-color: #F39C12;">&#128221;</div>
+        <div class="day-time" style="color: #F39C12;">16:00 PM -- 콘텐츠 제작</div>
+        <div class="day-title">CapCut AI로 영상 편집, Canva AI로 썸네일</div>
+        <div class="day-desc">소셜미디어용 영상은 CapCut AI가 자동 자막과 350+ AI 음성으로 처리. 썸네일은 Canva AI가 브랜드 키트에 맞춰 제작합니다.</div>
+        <span class="day-service-tag" style="color: var(--c-design);">CapCut AI</span>
+        <span class="day-service-tag" style="color: var(--c-design);">Canva AI</span>
+      </div>
+
+      <div class="day-item">
+        <div class="day-dot" style="border-color: var(--c-accent);">&#127769;</div>
+        <div class="day-time" style="color: var(--c-accent);">18:00 PM -- 퇴근 전</div>
+        <div class="day-title">Perplexity에 궁금한 것 질문 -- 출처 달린 답변 3초</div>
+        <div class="day-desc">퇴근 전 궁금한 게 생기면 Perplexity에 물어봅니다. 출처까지 달린 답변이 3초 만에 돌아옵니다. 개인 리서치 비서가 붙어 있는 셈입니다.</div>
+        <span class="day-service-tag" style="color: var(--c-search);">Perplexity</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ==================== 4.2 엔진과 완성차 ==================== -->
+<section class="content-section" id="sec-engine">
+  <div class="container">
+    <div class="section-badge" style="border-color: rgba(155,89,182,0.3);">
+      <div class="dot" style="background: var(--c-agent);"></div>
+      SECTION 4.2
+    </div>
+    <h2 class="section-title" style="color: var(--c-agent);">엔진과 완성차</h2>
+    <p class="section-summary">앞서 살펴본 서비스들은 어떤 AI 모델 위에서 돌아가고 있을까요? 현대 AI 산업의 구조를 이해하는 핵심은 "엔진-완성차" 관계입니다.</p>
+
+    <!-- 시각적 다이어그램 -->
+    <div class="mapping-diagram">
+      <div style="text-align:center;">
+        <span class="mapping-layer-label" style="background:rgba(0,212,170,0.1);color:var(--c-accent);">응용 서비스 (완성차)</span>
+      </div>
+      <div class="mapping-layer" id="service-layer">
+        <div class="mapping-node" style="border-color:rgba(231,76,139,0.3);">
+          <div style="color:var(--c-coding);font-weight:700;">Cursor</div>
+          <div class="node-sub">코딩 IDE</div>
+        </div>
+        <div class="mapping-node" style="border-color:rgba(74,144,217,0.3);">
+          <div style="color:var(--c-search);font-weight:700;">Perplexity</div>
+          <div class="node-sub">AI 검색</div>
+        </div>
+        <div class="mapping-node" style="border-color:rgba(0,212,170,0.3);">
+          <div style="color:var(--c-work);font-weight:700;">Notion AI</div>
+          <div class="node-sub">업무 자동화</div>
+        </div>
+        <div class="mapping-node" style="border-color:rgba(243,156,18,0.3);">
+          <div style="color:var(--c-design);font-weight:700;">v0</div>
+          <div class="node-sub">디자인</div>
+        </div>
+        <div class="mapping-node" style="border-color:rgba(0,212,170,0.3);">
+          <div style="color:var(--c-work);font-weight:700;">Slack AI</div>
+          <div class="node-sub">업무 자동화</div>
+        </div>
+        <div class="mapping-node" style="border-color:rgba(155,89,182,0.3);">
+          <div style="color:var(--c-agent);font-weight:700;">Devin</div>
+          <div class="node-sub">에이전트</div>
+        </div>
+      </div>
+
+      <div class="mapping-arrow">&#9660; &#9660; &#9660;</div>
+      <div class="mapping-arrow-label">API 호출 / 파인튜닝</div>
+
+      <div style="text-align:center;">
+        <span class="mapping-layer-label" style="background:rgba(52,152,219,0.1);color:var(--c-primary);">범용 모델 (엔진)</span>
+      </div>
+      <div class="mapping-layer" id="model-layer">
+        <div class="mapping-node" style="border-color:rgba(52,152,219,0.4);background:rgba(52,152,219,0.05);">
+          <div style="color:var(--c-primary);font-weight:700;">GPT-5</div>
+          <div class="node-sub">OpenAI</div>
+        </div>
+        <div class="mapping-node" style="border-color:rgba(231,76,139,0.4);background:rgba(231,76,139,0.05);">
+          <div style="color:var(--c-coding);font-weight:700;">Claude</div>
+          <div class="node-sub">Anthropic</div>
+        </div>
+        <div class="mapping-node" style="border-color:rgba(0,212,170,0.4);background:rgba(0,212,170,0.05);">
+          <div style="color:var(--c-accent);font-weight:700;">Gemini 3</div>
+          <div class="node-sub">Google</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="quote-box" style="border-color: var(--c-agent);">
+      대부분의 서비스가 하나의 모델에만 의존하지 않습니다. Cursor는 Claude, GPT, 자체 모델을 혼합 사용하고, MS 365 Copilot도 GPT-5에 더해 Claude를 통합했습니다. 마치 자동차 제조사가 상황에 따라 다른 엔진을 탑재하는 것과 같습니다.
+    </div>
+
+    <h3 class="sub-heading">모델-서비스 매핑 상세</h3>
+    <table class="data-table">
+      <thead>
+        <tr><th>서비스</th><th>기반 모델</th><th>활용 방식</th><th>카테고리</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Cursor</strong></td><td>Claude, GPT-5, 자체 모델</td><td>API + 파인튜닝</td><td style="color:var(--c-coding);">코딩</td></tr>
+        <tr><td><strong>GitHub Copilot</strong></td><td>GPT-5, Claude</td><td>API + 파인튜닝</td><td style="color:var(--c-coding);">코딩</td></tr>
+        <tr><td><strong>Perplexity</strong></td><td>GPT, Claude, 자체 모델</td><td>API + RAG 파이프라인</td><td style="color:var(--c-search);">검색</td></tr>
+        <tr><td><strong>ChatGPT (Atlas)</strong></td><td>GPT-5 계열</td><td>자사 모델 직접 통합</td><td style="color:var(--c-search);">검색/대화</td></tr>
+        <tr><td><strong>Gemini</strong></td><td>Gemini 3 Pro</td><td>자사 모델 직접 통합</td><td style="color:var(--c-search);">검색/대화</td></tr>
+        <tr><td><strong>Devin</strong></td><td>Claude, GPT + 자체 모델</td><td>API + 에이전트 로직</td><td style="color:var(--c-agent);">에이전트</td></tr>
+        <tr><td><strong>Manus</strong></td><td>다중 모델 조합</td><td>에이전트 오케스트레이션</td><td style="color:var(--c-agent);">에이전트</td></tr>
+        <tr><td><strong>MS 365 Copilot</strong></td><td>GPT-5 + Claude</td><td>깊은 제품 통합</td><td style="color:var(--c-work);">업무 자동화</td></tr>
+        <tr><td><strong>Notion AI</strong></td><td>Claude + 자체 모델</td><td>API</td><td style="color:var(--c-work);">업무 자동화</td></tr>
+        <tr><td><strong>Slack AI</strong></td><td>Claude</td><td>API</td><td style="color:var(--c-work);">업무 자동화</td></tr>
+        <tr><td><strong>CapCut AI</strong></td><td>자체 모델 (ByteDance)</td><td>자체 모델 통합</td><td style="color:var(--c-design);">영상 편집</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ==================== 4.3 비즈니스 수치 ==================== -->
+<section class="content-section" id="sec-biz">
+  <div class="container">
+    <div class="section-badge" style="border-color: rgba(243,156,18,0.3);">
+      <div class="dot" style="background: var(--c-design);"></div>
+      SECTION 4.3
+    </div>
+    <h2 class="section-title" style="background: linear-gradient(135deg, #F39C12, #E74C3C); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">숫자로 보는 AI 비즈니스</h2>
+    <p class="section-summary">AI가 만들어내는 비즈니스의 규모는 놀랍습니다. 연구 프로젝트에 가까웠던 AI 기업들이 이제는 수백억 달러의 기업가치를 인정받고 있습니다.</p>
+
+    <h3 class="sub-heading" style="color:var(--c-design);">주요 AI 기업 현황 (2026년 3월)</h3>
+
+    <div class="counter-row">
+      <div class="counter-item">
+        <div class="counter-number" style="color: #F39C12;" data-target="250" data-suffix="억$">0</div>
+        <div class="counter-label">OpenAI ARR</div>
+      </div>
+      <div class="counter-item">
+        <div class="counter-number" style="color: #E74C8B;" data-target="190" data-suffix="억$">0</div>
+        <div class="counter-label">Anthropic ARR</div>
+      </div>
+      <div class="counter-item">
+        <div class="counter-number" style="color: #9B59B6;" data-target="20" data-suffix="억$">0</div>
+        <div class="counter-label">Cursor ARR</div>
+      </div>
+      <div class="counter-item">
+        <div class="counter-number" style="color: #3498DB;" data-target="8300" data-suffix="억$">0</div>
+        <div class="counter-label">OpenAI 기업가치</div>
+      </div>
+    </div>
+
+    <div class="biz-cards">
+      <div class="biz-card">
+        <div class="biz-name" style="color:#F39C12;">OpenAI</div>
+        <div class="biz-arr" style="color:#F39C12;">$250억</div>
+        <div class="biz-val">기업가치 $7,500~8,300억</div>
+        <div class="biz-note">2025년 매출 $130억, 적자 $85억</div>
+      </div>
+      <div class="biz-card">
+        <div class="biz-name" style="color:#E74C8B;">Anthropic</div>
+        <div class="biz-arr" style="color:#E74C8B;">$190억</div>
+        <div class="biz-val">기업가치 $3,500억+</div>
+        <div class="biz-note">연간 10배 성장, 2026 중반 OpenAI 추월 전망</div>
+      </div>
+      <div class="biz-card">
+        <div class="biz-name" style="color:#9B59B6;">Cursor (Anysphere)</div>
+        <div class="biz-arr" style="color:#9B59B6;">$20억+</div>
+        <div class="biz-val">기업가치 $293억</div>
+        <div class="biz-note">B2B SaaS 역사상 최고속 성장</div>
+      </div>
+      <div class="biz-card">
+        <div class="biz-name" style="color:#3498DB;">Perplexity</div>
+        <div class="biz-arr" style="color:#3498DB;">$2억</div>
+        <div class="biz-val">기업가치 $212억</div>
+        <div class="biz-note">전년 대비 800% 성장, 연말 $6.5억 전망</div>
+      </div>
+      <div class="biz-card">
+        <div class="biz-name" style="color:var(--c-accent);">Midjourney</div>
+        <div class="biz-arr" style="color:var(--c-accent);">~$3억</div>
+        <div class="biz-val">비공개</div>
+        <div class="biz-note">외부 투자 없이 11명으로 운영. AI 시대 "소수 정예"의 상징.</div>
+      </div>
+    </div>
+
+    <h3 class="sub-heading" style="color:var(--c-design);">주요 투자/인수 타임라인 (2025~2026)</h3>
+
+    <div class="invest-timeline">
+      <div class="invest-item">
+        <div class="invest-date">2025.03</div>
+        <div class="invest-info">
+          <h4>OpenAI 시리즈 펀딩</h4>
+          <div class="amount" style="color:#F39C12;">$400억</div>
+          <div class="meaning">AI 사상 최대 펀딩 라운드 (기업가치 $3,000억)</div>
+        </div>
+      </div>
+      <div class="invest-item">
+        <div class="invest-date">2025.08</div>
+        <div class="invest-info">
+          <h4>OpenAI 세컨더리 주식 매각</h4>
+          <div class="amount" style="color:#F39C12;">$60억</div>
+          <div class="meaning">직원 유동성 제공 (기업가치 $5,000억)</div>
+        </div>
+      </div>
+      <div class="invest-item">
+        <div class="invest-date">2025.09</div>
+        <div class="invest-info">
+          <h4>Anthropic 시리즈 F</h4>
+          <div class="amount" style="color:#E74C8B;">$130억</div>
+          <div class="meaning">6개월 만에 기업가치 3배 (기업가치 $1,830억)</div>
+        </div>
+      </div>
+      <div class="invest-item">
+        <div class="invest-date">2025.11</div>
+        <div class="invest-info">
+          <h4>Cursor 시리즈 D</h4>
+          <div class="amount" style="color:#9B59B6;">$23억</div>
+          <div class="meaning">AI 코딩 도구의 가치 입증 (기업가치 $293억)</div>
+        </div>
+      </div>
+      <div class="invest-item">
+        <div class="invest-date">2025.12</div>
+        <div class="invest-info">
+          <h4>Meta의 Manus 인수 발표</h4>
+          <div class="amount" style="color:var(--c-agent);">$20~30억</div>
+          <div class="meaning">빅테크의 에이전트 확보 경쟁</div>
+        </div>
+      </div>
+      <div class="invest-item">
+        <div class="invest-date">2026.초</div>
+        <div class="invest-info">
+          <h4>Anthropic 추가 라운드 진행 중</h4>
+          <div class="amount" style="color:#E74C8B;">$200억+</div>
+          <div class="meaning">GIC, Coatue 주도 (기업가치 $3,500억)</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="sub-heading" style="color:var(--c-design);">산업별 AI 도입 현황</h3>
+    <p class="sub-desc">AI가 침투하지 않는 산업은 이제 거의 없습니다.</p>
+
+    <div class="industry-grid">
+      <div class="industry-card">
+        <h4 style="color:var(--c-coding);">소프트웨어 개발</h4>
+        <div class="usage">AI 코딩, 코드 리뷰, 테스트 자동화</div>
+        <span class="example">Cursor, GitHub Copilot</span>
+      </div>
+      <div class="industry-card">
+        <h4 style="color:var(--c-design);">마케팅/광고</h4>
+        <div class="usage">콘텐츠 생성, 개인화, 광고 카피</div>
+        <span class="example">Canva AI, Midjourney</span>
+      </div>
+      <div class="industry-card">
+        <h4 style="color:#F39C12;">금융</h4>
+        <div class="usage">리스크 분석, 고객 서비스, 문서 처리</div>
+        <span class="example">Claude/GPT API 도입</span>
+      </div>
+      <div class="industry-card">
+        <h4 style="color:#00D4AA;">헬스케어</h4>
+        <div class="usage">의료 영상 분석, 진단 보조, 신약 개발</div>
+        <span class="example">Google Health AI</span>
+      </div>
+      <div class="industry-card">
+        <h4 style="color:var(--c-agent);">미디어/엔터</h4>
+        <div class="usage">영상 생성, 음악 제작, 더빙/번역</div>
+        <span class="example">Sora, ElevenLabs</span>
+      </div>
+      <div class="industry-card">
+        <h4 style="color:var(--c-search);">법률</h4>
+        <div class="usage">계약서 분석, 판례 검색, 문서 작성</div>
+        <span class="example">Harvey AI</span>
+      </div>
+      <div class="industry-card">
+        <h4 style="color:var(--c-primary);">교육</h4>
+        <div class="usage">개인화 학습, 튜터링, 콘텐츠 제작</div>
+        <span class="example">Khan Academy Khanmigo</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ==================== 4.4 다섯 가지 메가트렌드 ==================== -->
+<section class="content-section" id="sec-trend">
+  <div class="container">
+    <div class="section-badge" style="border-color: rgba(0,212,170,0.3);">
+      <div class="dot" style="background: var(--c-accent);"></div>
+      SECTION 4.4
+    </div>
+    <h2 class="section-title" style="background: linear-gradient(135deg, var(--c-primary), var(--c-accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">5대 메가트렌드</h2>
+    <p class="section-summary">개별 서비스와 숫자 너머에, AI 산업 전체를 관통하는 큰 흐름이 있습니다. 각 카드를 클릭해서 상세 내용을 확인하세요.</p>
+
+    <div class="trend-cards">
+
+      <div class="trend-card" onclick="toggleTrend(this)">
+        <div class="trend-header">
+          <div class="trend-num">01</div>
+          <div class="trend-headline">
+            <h3>오픈소스의 반격</h3>
+            <p>"AI 개발에는 수십억 달러가 필요하다"는 통념을 깨뜨리다</p>
+          </div>
+          <div class="trend-expand-icon">&#9660;</div>
+        </div>
+        <div class="trend-body">
+          <div class="trend-body-inner">
+            DeepSeek-V3가 최종 학습 비용 약 <strong style="color:var(--c-accent);">557만 달러</strong>로 프론티어급 성능을 달성했습니다. LLaMA 4, Grok, Qwen 3 등 오픈소스 모델들이 상용 모델과 대등한 성능을 보여주면서, AI의 민주화가 가속되고 있습니다. 누구나 최첨단 AI를 가져다 쓸 수 있는 시대입니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="trend-card" onclick="toggleTrend(this)">
+        <div class="trend-header">
+          <div class="trend-num">02</div>
+          <div class="trend-headline">
+            <h3>에이전트의 시대</h3>
+            <p>"시키면 답변해주는 AI"에서 "시키면 해내는 AI"로</p>
+          </div>
+          <div class="trend-expand-icon">&#9660;</div>
+        </div>
+        <div class="trend-body">
+          <div class="trend-body-inner">
+            2025년은 AI가 "대화"에서 "행동"으로 전환된 해입니다. Devin, Manus, Claude Code 등이 단순한 응답을 넘어 실제 작업을 자율적으로 수행하는 에이전트로 진화했습니다. Microsoft는 <strong style="color:var(--c-accent);">Agent 365</strong>라는 엔터프라이즈 에이전트 플랫폼까지 내놓았습니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="trend-card" onclick="toggleTrend(this)">
+        <div class="trend-header">
+          <div class="trend-num">03</div>
+          <div class="trend-headline">
+            <h3>멀티모달의 일상화</h3>
+            <p>텍스트, 이미지, 영상, 음성, 코드를 넘나드는 AI</p>
+          </div>
+          <div class="trend-expand-icon">&#9660;</div>
+        </div>
+        <div class="trend-body">
+          <div class="trend-body-inner">
+            GPT-5와 Gemini 3은 출시 시점부터 네이티브 멀티모달을 지원합니다. 사진을 찍어서 "이게 뭐야?"라고 물으면 설명해주고, "이 스타일로 영상 만들어줘"라고 하면 만들어줍니다. 멀티모달 능력이 이제 <strong style="color:var(--c-accent);">기본 사양</strong>이 되었습니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="trend-card" onclick="toggleTrend(this)">
+        <div class="trend-header">
+          <div class="trend-num">04</div>
+          <div class="trend-headline">
+            <h3>AI 비용의 급격한 하락</h3>
+            <p>GPT-4 대비 GPT-5.4 API 가격 약 1/20</p>
+          </div>
+          <div class="trend-expand-icon">&#9660;</div>
+        </div>
+        <div class="trend-body">
+          <div class="trend-body-inner">
+            1년 전만 해도 "비싸서 못 쓴다"던 AI를 이제는 스타트업도, 개인 개발자도 부담 없이 활용할 수 있게 되었습니다. 오픈소스 모델은 무료로 사용할 수 있습니다. AI 도입의 <strong style="color:var(--c-accent);">경제적 장벽이 사실상 사라진 것</strong>입니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="trend-card" onclick="toggleTrend(this)">
+        <div class="trend-header">
+          <div class="trend-num">05</div>
+          <div class="trend-headline">
+            <h3>바이브 코딩의 부상</h3>
+            <p>노트북 하나와 주말 하나면 제품 출시 가능</p>
+          </div>
+          <div class="trend-expand-icon">&#9660;</div>
+        </div>
+        <div class="trend-body">
+          <div class="trend-body-inner">
+            AI와 대화하며 코드를 작성하는 "바이브 코딩(Vibe Coding)"이 2025년 최대 유행어가 되었습니다. 비개발자도 v0, Replit Agent 등을 통해 웹 앱을 만들 수 있게 되면서, <strong style="color:var(--c-accent);">"5만 달러와 6개월이 필요했던 제품 출시가 노트북 하나와 주말 하나면 가능한 시대"</strong>가 열렸습니다. 바이브 코딩의 구체적인 실습 가이드는 Ch5에서 다룹니다.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ==================== 4.5 핵심 정리 ==================== -->
+<section class="content-section" id="sec-summary">
+  <div class="container">
+    <div class="section-badge" style="border-color: rgba(52,152,219,0.3);">
+      <div class="dot" style="background: var(--c-primary);"></div>
+      SECTION 4.5
+    </div>
+    <h2 class="section-title" style="background: linear-gradient(135deg, var(--c-primary), var(--c-accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">핵심 정리</h2>
+    <p class="section-summary">이 챕터에서 기억해야 할 5가지 핵심 메시지입니다.</p>
+
+    <div class="summary-cards">
+      <div class="summary-card">
+        <div class="summary-num">01</div>
+        <div class="summary-content">
+          <h3>AI 서비스는 이미 일상에 침투해 있다</h3>
+          <p>검색, 코딩, 디자인, 영상, 업무 자동화 -- 거의 모든 업무 영역에 AI 서비스가 존재합니다.</p>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-num">02</div>
+        <div class="summary-content">
+          <h3>엔진-완성차 구조를 이해하라</h3>
+          <p>대부분의 서비스는 GPT, Claude 등 범용 모델을 API로 호출하며, 점점 더 멀티모델 전략을 취하고 있습니다.</p>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-num">03</div>
+        <div class="summary-content">
+          <h3>비즈니스 규모가 폭발적이다</h3>
+          <p>OpenAI ARR $250억, Anthropic $190억, Cursor $20억 -- AI는 실험이 아니라 거대한 산업입니다.</p>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-num">04</div>
+        <div class="summary-content">
+          <h3>실패에서도 배워라</h3>
+          <p>Humane AI Pin과 Rabbit R1의 실패는 "기술보다 사용자 습관이 중요하다"는 교훈을 남겼습니다.</p>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-num">05</div>
+        <div class="summary-content">
+          <h3>다섯 가지 메가트렌드를 주시하라</h3>
+          <p>오픈소스 반격, 에이전트 시대, 멀티모달 일상화, 비용 하락, 바이브 코딩 -- 이 흐름이 향후 AI 산업의 방향을 결정합니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 참고 출처 -->
+    <div style="margin-top:60px;padding:24px 28px;background:rgba(255,255,255,0.02);border-radius:16px;border:1px solid rgba(255,255,255,0.06);">
+      <h4 style="font-size:14px;font-weight:700;color:var(--text-secondary);margin-bottom:12px;letter-spacing:1px;">참고 출처</h4>
+      <p style="font-size:13px;color:var(--text-secondary);line-height:2;font-weight:300;">
+        <a href="https://techcrunch.com/2026/03/02/cursor-has-reportedly-surpassed-2b-in-annualized-revenue/" style="color:var(--c-accent);text-decoration:none;">Cursor ARR $2B - TechCrunch</a> &middot;
+        <a href="https://www.demandsage.com/perplexity-ai-statistics/" style="color:var(--c-accent);text-decoration:none;">Perplexity AI Statistics - DemandSage</a> &middot;
+        <a href="https://www.usaii.org/ai-insights/ai-agents-in-2026-a-comparative-guide-to-tools-frameworks-and-platforms" style="color:var(--c-accent);text-decoration:none;">AI Agent Market 2026 - USAII</a> &middot;
+        <a href="https://sacra.com/c/anthropic/" style="color:var(--c-accent);text-decoration:none;">Anthropic Revenue - Sacra</a> &middot;
+        <a href="https://www.techradar.com/computing/artificial-intelligence/with-the-humane-ai-pin-now-dead-what-does-the-rabbit-r1-need-to-do-to-survive" style="color:var(--c-accent);text-decoration:none;">Humane AI Pin - TechRadar</a> &middot;
+        <a href="https://en.wikipedia.org/wiki/Manus_(AI_agent)" style="color:var(--c-accent);text-decoration:none;">Manus AI - Wikipedia</a> &middot;
+        <a href="https://www.microsoft.com/en-us/microsoft-365/blog/2026/03/09/powering-frontier-transformation-with-copilot-and-agents/" style="color:var(--c-accent);text-decoration:none;">MS 365 Copilot Blog</a> &middot;
+        <a href="https://www.tldl.io/resources/ai-coding-tools-2026" style="color:var(--c-accent);text-decoration:none;">AI Coding Tools 2026 - TLDL</a> &middot;
+        <a href="https://developers.redhat.com/articles/2026/01/07/state-open-source-ai-models-2025" style="color:var(--c-accent);text-decoration:none;">Open Source AI Models - Red Hat</a>
+      </p>
+    </div>
+
+    <!-- 페이지 네비게이션 -->
+    <div class="footer-nav">
+      <a href="ch3.html">&larr; Ch3으로</a>
+      <a href="index.html">🏠 홈</a>
+      <a href="ch5.html">Ch5로 &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>AI 트렌드 온보딩 완벽 가이드 &mdash; Ch4. AI가 바꾸는 세상</p>
+  <p style="margin-top: 8px; font-size: 13px;">AI 트렌드 온보딩 완벽 가이드 &middot; 2026년 3월</p>
+</div>
+
+<script>
+// ===== PARTICLE SYSTEM =====
+(function() {
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+  const PARTICLE_COUNT = 70;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    particles.push({
+      x: Math.random() * (W || 1920),
+      y: Math.random() * (H || 1080),
+      r: Math.random() * 2.5 + 0.5,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      alpha: Math.random() * 0.5 + 0.1,
+      pulseSpeed: Math.random() * 0.02 + 0.005,
+      pulsePhase: Math.random() * Math.PI * 2
+    });
+  }
+
+  let scrollProgress = 0;
+  window.addEventListener('scroll', () => {
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    scrollProgress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+  });
+
+  function lerpColor(t) {
+    // Blue #3498DB to Mint #00D4AA
+    const r = Math.round(52 + (0 - 52) * t);
+    const g = Math.round(152 + (212 - 152) * t);
+    const b = Math.round(219 + (170 - 219) * t);
+    return [r, g, b];
+  }
+
+  let frame = 0;
+  function animate() {
+    frame++;
+    ctx.clearRect(0, 0, W, H);
+    const [r, g, b] = lerpColor(scrollProgress);
+
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0) p.x = W;
+      if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H;
+      if (p.y > H) p.y = 0;
+
+      const pulse = Math.sin(frame * p.pulseSpeed + p.pulsePhase) * 0.3 + 0.7;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * pulse, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${r},${g},${b},${p.alpha * pulse})`;
+      ctx.fill();
+    });
+
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 120) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(${r},${g},${b},${0.06 * (1 - dist/120)})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+// ===== GRADIENT BACKGROUND =====
+const gradientBg = document.getElementById('gradientBg');
+window.addEventListener('scroll', () => {
+  const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+  const p = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+  const r = Math.round(52 + (0 - 52) * p);
+  const g = Math.round(152 + (212 - 152) * p);
+  const b = Math.round(219 + (170 - 219) * p);
+  gradientBg.style.background = `radial-gradient(ellipse at ${30 + p * 40}% 50%, rgba(${r},${g},${b},0.25) 0%, transparent 70%)`;
+});
+
+// ===== SMOOTH SCROLL =====
+function smoothScroll(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ===== CATEGORY CARD TOGGLE =====
+function toggleCategory(card) {
+  card.classList.toggle('expanded');
+}
+
+// ===== TREND CARD TOGGLE =====
+function toggleTrend(card) {
+  card.classList.toggle('expanded');
+}
+
+// ===== GSAP ANIMATIONS =====
+gsap.registerPlugin(ScrollTrigger);
+
+// Hero
+gsap.from('.hero-subtitle', { opacity: 0, y: 30, duration: 1, delay: 0.2 });
+gsap.from('.hero-title', { opacity: 0, y: 50, duration: 1.2, delay: 0.5 });
+gsap.from('.hero-desc', { opacity: 0, y: 30, duration: 1, delay: 0.8 });
+gsap.from('.hero-quote', { opacity: 0, y: 30, duration: 1, delay: 1 });
+gsap.from('.scroll-indicator', { opacity: 0, duration: 1, delay: 1.3 });
+
+gsap.to('.hero', {
+  opacity: 0, y: -100,
+  scrollTrigger: { trigger: '.hero', start: 'center center', end: 'bottom top', scrub: 1 }
+});
+
+// Content sections
+document.querySelectorAll('.content-section').forEach(section => {
+  const badge = section.querySelector('.section-badge');
+  const title = section.querySelector('.section-title');
+  const summary = section.querySelector('.section-summary');
+
+  if (badge) gsap.from(badge, {
+    opacity: 0, x: -40, duration: 0.8,
+    scrollTrigger: { trigger: section, start: 'top 80%', toggleActions: 'play none none reverse' }
+  });
+  if (title) gsap.from(title, {
+    opacity: 0, y: 40, duration: 0.8, delay: 0.1,
+    scrollTrigger: { trigger: section, start: 'top 80%', toggleActions: 'play none none reverse' }
+  });
+  if (summary) gsap.from(summary, {
+    opacity: 0, y: 30, duration: 0.8, delay: 0.2,
+    scrollTrigger: { trigger: section, start: 'top 80%', toggleActions: 'play none none reverse' }
+  });
+
+  section.querySelectorAll('.sub-heading').forEach(h => {
+    gsap.from(h, {
+      opacity: 0, y: 30, duration: 0.6,
+      scrollTrigger: { trigger: h, start: 'top 85%', toggleActions: 'play none none reverse' }
+    });
+  });
+
+  section.querySelectorAll('.data-table tbody tr').forEach((tr, i) => {
+    gsap.from(tr, {
+      opacity: 0, x: -30, duration: 0.5, delay: i * 0.05,
+      scrollTrigger: { trigger: tr, start: 'top 90%', toggleActions: 'play none none reverse' }
+    });
+  });
+});
+
+// Category cards stagger
+document.querySelectorAll('.category-card').forEach((card, i) => {
+  gsap.from(card, {
+    opacity: 0, y: 50, scale: 0.95, duration: 0.6, delay: i * 0.08,
+    scrollTrigger: { trigger: card, start: 'top 88%', toggleActions: 'play none none reverse' }
+  });
+});
+
+// Day timeline items scroll animation
+document.querySelectorAll('.day-item').forEach((item, i) => {
+  gsap.to(item, {
+    opacity: 1, x: 0, duration: 0.7, delay: i * 0.1,
+    scrollTrigger: {
+      trigger: item,
+      start: 'top 85%',
+      toggleActions: 'play none none reverse'
+    }
+  });
+  gsap.set(item, { opacity: 0, x: -40 });
+});
+
+// Mapping diagram nodes
+document.querySelectorAll('.mapping-node').forEach((node, i) => {
+  gsap.from(node, {
+    opacity: 0, y: 30, scale: 0.9, duration: 0.5, delay: i * 0.07,
+    scrollTrigger: { trigger: node, start: 'top 88%', toggleActions: 'play none none reverse' }
+  });
+});
+
+// Counter animations
+function animateCounter(el) {
+  const target = parseFloat(el.dataset.target);
+  const suffix = el.dataset.suffix || '';
+  const obj = { val: 0 };
+  gsap.to(obj, {
+    val: target,
+    duration: 2,
+    ease: 'power2.out',
+    scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reset' },
+    onUpdate: () => {
+      if (target >= 1000) {
+        el.textContent = Math.round(obj.val).toLocaleString() + suffix;
+      } else {
+        el.textContent = Math.round(obj.val) + suffix;
+      }
+    }
+  });
+}
+document.querySelectorAll('.counter-number[data-target]').forEach(animateCounter);
+
+// Biz cards
+document.querySelectorAll('.biz-card').forEach((card, i) => {
+  gsap.from(card, {
+    opacity: 0, y: 40, scale: 0.95, duration: 0.6, delay: (i % 3) * 0.1,
+    scrollTrigger: { trigger: card, start: 'top 88%', toggleActions: 'play none none reverse' }
+  });
+});
+
+// Invest items
+document.querySelectorAll('.invest-item').forEach((item, i) => {
+  gsap.from(item, {
+    opacity: 0, x: -40, duration: 0.5, delay: i * 0.08,
+    scrollTrigger: { trigger: item, start: 'top 88%', toggleActions: 'play none none reverse' }
+  });
+});
+
+// Industry cards
+document.querySelectorAll('.industry-card').forEach((card, i) => {
+  gsap.from(card, {
+    opacity: 0, y: 30, scale: 0.95, duration: 0.5, delay: (i % 4) * 0.08,
+    scrollTrigger: { trigger: card, start: 'top 88%', toggleActions: 'play none none reverse' }
+  });
+});
+
+// Trend cards
+document.querySelectorAll('.trend-card').forEach((card, i) => {
+  gsap.from(card, {
+    opacity: 0, x: -60, duration: 0.7, delay: i * 0.12,
+    scrollTrigger: { trigger: card, start: 'top 85%', toggleActions: 'play none none reverse' }
+  });
+});
+
+// Summary cards
+document.querySelectorAll('.summary-card').forEach((card, i) => {
+  gsap.from(card, {
+    opacity: 0, x: -60, duration: 0.7, delay: i * 0.12,
+    scrollTrigger: { trigger: card, start: 'top 85%', toggleActions: 'play none none reverse' }
+  });
+});
+
+// Quote boxes
+document.querySelectorAll('.quote-box').forEach(box => {
+  gsap.from(box, {
+    opacity: 0, y: 30, duration: 0.8,
+    scrollTrigger: { trigger: box, start: 'top 85%', toggleActions: 'play none none reverse' }
+  });
+});
+
+// ===== NAV ACTIVE STATE =====
+const navSections = [
+  { id: 'hero', key: 'hero' },
+  { id: 'sec-map', key: 'sec-map' },
+  { id: 'sec-day', key: 'sec-day' },
+  { id: 'sec-engine', key: 'sec-engine' },
+  { id: 'sec-biz', key: 'sec-biz' },
+  { id: 'sec-trend', key: 'sec-trend' },
+  { id: 'sec-summary', key: 'sec-summary' },
+];
+
+const navDots = document.querySelectorAll('#side-nav .nav-dot');
+const navLines = document.querySelectorAll('#side-nav .nav-line');
+
+function updateNav() {
+  const scrollY = window.scrollY + window.innerHeight / 3;
+  let activeIdx = 0;
+
+  navSections.forEach((s, i) => {
+    const el = document.getElementById(s.id);
+    if (el && el.offsetTop <= scrollY) activeIdx = i;
+  });
+
+  navDots.forEach((dot, i) => {
+    dot.classList.toggle('active', i === activeIdx);
+  });
+  navLines.forEach((line, i) => {
+    line.classList.toggle('active', i < activeIdx);
+  });
+}
+
+window.addEventListener('scroll', updateNav);
+window.addEventListener('load', updateNav);
+</script>
+</body>
+</html>

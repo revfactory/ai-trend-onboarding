@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch3. AI 모델 전쟁 — 5강 구도의 격전</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --c-openai: #10a37f;
+  --c-anthropic: #d97706;
+  --c-google: #4285f4;
+  --c-meta: #1877f2;
+  --c-deepseek: #ef4444;
+  --bg-dark: #0a0a0f;
+  --text-primary: #f0f0f5;
+  --text-secondary: #d0d0dd;
+}
+
+html { scroll-behavior: auto; }
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== PARTICLE CANVAS ===== */
+#particles {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+}
+#gradientBg {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+  opacity: 0.3;
+  transition: background 1.5s ease;
+  background: radial-gradient(ellipse at 30% 50%, rgba(16,163,127,0.25) 0%, transparent 50%),
+              radial-gradient(ellipse at 70% 50%, rgba(239,68,68,0.2) 0%, transparent 50%);
+}
+
+/* ===== LEFT NAV ===== */
+#side-nav {
+  position: fixed; left: 28px; top: 50%;
+  transform: translateY(-50%); z-index: 100;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 0;
+}
+#side-nav .nav-line {
+  width: 2px; height: 28px;
+  background: rgba(255,255,255,0.12);
+  transition: background 0.4s;
+}
+#side-nav .nav-line.active { background: rgba(255,255,255,0.5); }
+#side-nav .nav-dot {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 11px; cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.15);
+  background: rgba(10,10,15,0.85);
+  backdrop-filter: blur(10px);
+  transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+  position: relative; color: var(--text-secondary);
+}
+#side-nav .nav-dot:hover {
+  transform: scale(1.12);
+  border-color: rgba(255,255,255,0.5);
+}
+#side-nav .nav-dot.active {
+  transform: scale(1.18);
+  border-color: var(--dot-color, #fff);
+  box-shadow: 0 0 16px var(--dot-color, #fff), 0 0 32px rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.08);
+  color: var(--text-primary);
+}
+#side-nav .nav-dot .label {
+  position: absolute; left: 56px; white-space: nowrap;
+  font-size: 12px; font-weight: 500; color: var(--text-secondary);
+  opacity: 0; transform: translateX(-8px);
+  transition: all 0.3s; pointer-events: none;
+}
+#side-nav .nav-dot:hover .label,
+#side-nav .nav-dot.active .label {
+  opacity: 1; transform: translateX(0); color: var(--text-primary);
+}
+
+/* ===== HERO ===== */
+.hero {
+  height: 100vh; display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  text-align: center; position: relative; z-index: 1;
+  padding: 0 20px;
+}
+.hero-subtitle {
+  font-size: clamp(14px,2vw,18px); font-weight: 300;
+  color: var(--text-secondary); letter-spacing: 8px;
+  text-transform: uppercase; margin-bottom: 24px;
+}
+.hero-title {
+  font-size: clamp(36px,7vw,80px); font-weight: 900;
+  line-height: 1.15; margin-bottom: 32px;
+  background: linear-gradient(135deg, var(--c-openai), var(--c-anthropic), var(--c-google), var(--c-meta), var(--c-deepseek));
+  background-size: 300% 300%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradShift 6s ease infinite;
+}
+@keyframes gradShift {
+  0%,100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.hero-desc {
+  font-size: clamp(15px,2vw,20px); font-weight: 300;
+  color: var(--text-secondary); max-width: 720px;
+  line-height: 1.8; margin-bottom: 60px;
+}
+.hero-desc strong { color: var(--text-primary); }
+.scroll-indicator {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  animation: float 2s ease-in-out infinite;
+}
+.scroll-indicator span { font-size: 13px; color: var(--text-secondary); letter-spacing: 3px; }
+.scroll-arrow {
+  width: 24px; height: 24px;
+  border-right: 2px solid var(--text-secondary);
+  border-bottom: 2px solid var(--text-secondary);
+  transform: rotate(45deg);
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(10px); }
+}
+
+/* ===== SECTIONS ===== */
+.section {
+  min-height: 100vh; position: relative; z-index: 1;
+  padding: 120px 0;
+}
+.container {
+  max-width: 1100px; margin: 0 auto;
+  padding: 0 100px 0 120px;
+}
+.section-badge {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 8px 24px; border-radius: 50px;
+  font-size: 14px; font-weight: 500; letter-spacing: 2px;
+  margin-bottom: 24px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+}
+.section-badge .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:0.5; transform:scale(1.3); }
+}
+.section-title {
+  font-size: clamp(32px,5vw,56px); font-weight: 900;
+  line-height: 1.2; margin-bottom: 20px;
+}
+.section-desc {
+  font-size: clamp(16px,2vw,20px); font-weight: 300;
+  color: var(--text-secondary); line-height: 1.8;
+  max-width: 800px; margin-bottom: 60px;
+}
+.sub-heading {
+  font-size: clamp(20px,3vw,28px); font-weight: 700;
+  margin: 60px 0 20px;
+}
+.sub-desc {
+  font-size: 16px; color: var(--text-secondary);
+  line-height: 1.8; margin-bottom: 30px; max-width: 800px;
+}
+
+/* ===== PENTAGON MAP ===== */
+.pentagon-wrap {
+  position: relative; width: 100%; max-width: 700px;
+  height: 600px; margin: 40px auto;
+}
+.penta-node {
+  position: absolute; width: 140px; height: 140px;
+  border-radius: 50%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  border: 2px solid; cursor: pointer;
+  background: rgba(10,10,15,0.9);
+  backdrop-filter: blur(16px);
+  transition: all 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
+  z-index: 2;
+}
+.penta-node:hover {
+  transform: scale(1.15);
+  z-index: 10;
+}
+.penta-node .node-name {
+  font-size: 15px; font-weight: 700; margin-bottom: 4px;
+}
+.penta-node .node-tag {
+  font-size: 11px; font-weight: 400; color: var(--text-secondary);
+  text-align: center; line-height: 1.3;
+}
+.penta-node .node-popup {
+  position: absolute; top: 110%; left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  width: 240px; padding: 16px;
+  background: rgba(20,20,30,0.95);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 14px; backdrop-filter: blur(20px);
+  opacity: 0; pointer-events: none;
+  transition: all 0.35s; z-index: 20;
+  font-size: 13px; line-height: 1.6;
+}
+.penta-node:hover .node-popup {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+.node-popup .popup-title {
+  font-weight: 700; font-size: 14px; margin-bottom: 8px;
+}
+.node-popup .popup-models {
+  color: var(--text-secondary); font-size: 12px; margin-bottom: 6px;
+}
+.node-popup .popup-strategy {
+  font-size: 12px; color: var(--text-secondary);
+}
+.penta-center {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-size: 18px; font-weight: 900;
+  text-align: center; color: var(--text-secondary);
+  pointer-events: none;
+}
+.penta-lines {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1; pointer-events: none;
+}
+
+/* ===== EVENT CARDS ===== */
+.event-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px; padding: 36px;
+  margin-bottom: 24px; backdrop-filter: blur(20px);
+  transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+  position: relative; overflow: hidden;
+}
+.event-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+  border-radius: 4px 0 0 4px;
+}
+.event-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255,255,255,0.15);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.event-card .card-date {
+  font-size: 13px; font-weight: 500; letter-spacing: 1px; margin-bottom: 8px;
+}
+.event-card .card-title {
+  font-size: clamp(18px,2.5vw,24px); font-weight: 700; margin-bottom: 12px;
+}
+.event-card .card-desc {
+  font-size: 15px; font-weight: 300;
+  color: var(--text-secondary); line-height: 1.7;
+}
+.event-card .card-tag {
+  display: inline-block; padding: 4px 12px;
+  border-radius: 20px; font-size: 12px; font-weight: 500;
+  margin-top: 12px; background: rgba(255,255,255,0.08);
+}
+
+/* ===== DATA TABLE ===== */
+.table-wrap {
+  overflow-x: auto; margin: 30px 0;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+}
+.data-table {
+  width: 100%; border-collapse: collapse; font-size: 14px;
+}
+.data-table thead th {
+  padding: 16px 18px; text-align: left;
+  font-weight: 700; font-size: 13px; letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-secondary); white-space: nowrap;
+  cursor: pointer; user-select: none;
+  position: relative;
+}
+.data-table thead th:hover { color: var(--text-primary); }
+.data-table thead th .sort-icon { margin-left: 4px; font-size: 10px; opacity: 0.5; }
+.data-table thead th.sorted .sort-icon { opacity: 1; }
+.data-table tbody td {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.data-table tbody tr { transition: background 0.3s; }
+.data-table tbody tr:hover { background: rgba(255,255,255,0.04); }
+.data-table .highlight { font-weight: 700; }
+
+/* ===== FILTER TABS ===== */
+.filter-bar {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  margin: 30px 0 20px;
+}
+.filter-btn {
+  padding: 8px 20px; border-radius: 30px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-secondary); transition: all 0.3s;
+  font-family: inherit;
+}
+.filter-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--text-primary); }
+.filter-btn.active {
+  background: var(--btn-color, rgba(255,255,255,0.15));
+  border-color: var(--btn-color, rgba(255,255,255,0.4));
+  color: #fff;
+}
+
+/* ===== TIMELINE HORIZONTAL ===== */
+.timeline-h {
+  position: relative; margin: 60px 0 40px;
+  overflow-x: auto; padding-bottom: 30px;
+}
+.timeline-h::-webkit-scrollbar { height: 6px; }
+.timeline-h::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+.timeline-h::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+.tl-track {
+  display: flex; align-items: flex-start;
+  min-width: max-content; padding: 0 20px;
+  position: relative;
+}
+.tl-track::before {
+  content: ''; position: absolute;
+  top: 60px; left: 0; right: 0;
+  height: 3px; background: rgba(255,255,255,0.1);
+}
+.tl-item {
+  display: flex; flex-direction: column; align-items: center;
+  width: 140px; flex-shrink: 0; position: relative;
+  cursor: default;
+}
+.tl-item .tl-date {
+  font-size: 11px; font-weight: 500; margin-bottom: 8px;
+  color: var(--text-secondary); white-space: nowrap;
+}
+.tl-item .tl-dot-m {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 3px solid; background: var(--bg-dark);
+  position: relative; z-index: 2;
+  transition: transform 0.3s;
+}
+.tl-item:hover .tl-dot-m { transform: scale(1.4); }
+.tl-item .tl-model {
+  font-size: 12px; font-weight: 700;
+  margin-top: 10px; text-align: center;
+  line-height: 1.3; white-space: nowrap;
+}
+.tl-item .tl-detail {
+  font-size: 11px; color: var(--text-secondary);
+  text-align: center; margin-top: 4px;
+  max-width: 130px; line-height: 1.3;
+}
+
+/* ===== PRICE CHART ===== */
+.price-chart-area {
+  position: relative; height: 400px;
+  margin: 40px 0; background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px; overflow: hidden;
+}
+.price-bar-group {
+  position: absolute; bottom: 60px;
+  display: flex; flex-direction: column; align-items: center;
+  transition: all 0.3s;
+}
+.price-bar-group:hover { transform: scale(1.05); }
+.price-bar {
+  width: 36px; border-radius: 6px 6px 0 0;
+  transition: height 1.5s cubic-bezier(0.23,1,0.32,1);
+  position: relative;
+}
+.price-bar .bar-val {
+  position: absolute; top: -22px; left: 50%;
+  transform: translateX(-50%); font-size: 11px;
+  font-weight: 700; white-space: nowrap;
+}
+.price-label {
+  font-size: 11px; font-weight: 600;
+  margin-top: 8px; text-align: center;
+  white-space: nowrap; color: var(--text-secondary);
+}
+.price-axis-label {
+  position: absolute; bottom: 8px; width: 100%;
+  text-align: center; font-size: 12px;
+  color: var(--text-secondary);
+}
+.price-y-label {
+  position: absolute; left: 12px; font-size: 11px;
+  color: rgba(255,255,255,0.3);
+}
+.price-grid-line {
+  position: absolute; left: 0; right: 0;
+  height: 1px; background: rgba(255,255,255,0.05);
+}
+
+/* ===== SHOCK COUNTERS ===== */
+.shock-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 20px; margin: 40px 0;
+}
+.shock-card {
+  padding: 32px 16px; border-radius: 20px;
+  background: rgba(239,68,68,0.06);
+  border: 1px solid rgba(239,68,68,0.2);
+  text-align: center; transition: all 0.4s;
+  overflow: hidden;
+}
+.shock-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px rgba(239,68,68,0.15);
+  border-color: rgba(239,68,68,0.4);
+}
+.shock-number {
+  font-size: clamp(22px,3.5vw,38px); font-weight: 900;
+  color: var(--c-deepseek); line-height: 1.2;
+  margin-bottom: 8px;
+  white-space: nowrap;
+}
+.shock-label {
+  font-size: 14px; color: var(--text-secondary); font-weight: 400;
+}
+.shock-sub {
+  font-size: 12px; color: rgba(255,255,255,0.3);
+  margin-top: 6px;
+}
+
+/* ===== QUOTE BOX ===== */
+.quote-box {
+  padding: 32px 40px; border-left: 3px solid;
+  background: rgba(255,255,255,0.02);
+  border-radius: 0 16px 16px 0;
+  margin: 40px 0; font-size: 18px;
+  font-weight: 400; line-height: 1.7;
+}
+
+/* ===== TREND CARDS ===== */
+.trend-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+  gap: 20px; margin: 40px 0;
+}
+.trend-card {
+  padding: 32px; border-radius: 20px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.4s;
+}
+.trend-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255,255,255,0.18);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.25);
+}
+.trend-num {
+  font-size: 40px; font-weight: 900; line-height: 1;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, var(--c-openai), var(--c-deepseek));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.trend-card h4 {
+  font-size: 18px; font-weight: 700; margin-bottom: 10px;
+}
+.trend-card p {
+  font-size: 14px; color: var(--text-secondary); line-height: 1.7;
+}
+
+/* ===== WINNER CARDS ===== */
+.winner-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+  gap: 16px; margin: 40px 0;
+}
+.winner-card {
+  padding: 28px 20px; border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  text-align: center; transition: all 0.4s;
+}
+.winner-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--wc, rgba(255,255,255,0.2));
+  box-shadow: 0 12px 36px rgba(0,0,0,0.2);
+}
+.winner-card .wc-name {
+  font-size: 16px; font-weight: 700; margin-bottom: 8px;
+}
+.winner-card .wc-area {
+  font-size: 13px; color: var(--text-secondary); line-height: 1.5;
+}
+
+/* ===== FOOTER NAV ===== */
+.footer-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 60px 0; margin-top: 40px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.footer-nav a {
+  color: var(--text-secondary); text-decoration: none;
+  font-size: 16px; font-weight: 500;
+  padding: 12px 24px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.3s;
+}
+.footer-nav a:hover {
+  color: var(--text-primary);
+  border-color: rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.05);
+}
+
+/* ===== FOOTER ===== */
+.footer {
+  text-align: center; padding: 40px 20px 80px;
+  position: relative; z-index: 1;
+}
+.footer p {
+  font-size: 14px; color: var(--text-secondary); line-height: 1.8;
+}
+
+/* ===== SECTION DIVIDER ===== */
+.section-divider {
+  height: 160px; display: flex; align-items: center;
+  justify-content: center; position: relative; z-index: 1;
+}
+.divider-line {
+  width: 1px; height: 80px;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  #side-nav { left: 10px; }
+  #side-nav .nav-dot { width: 34px; height: 34px; font-size: 10px; }
+  #side-nav .nav-dot .label { display: none; }
+  #side-nav .nav-line { height: 16px; }
+  .container { padding: 0 16px 0 60px; }
+  .pentagon-wrap { height: 500px; }
+  .penta-node { width: 100px; height: 100px; }
+  .penta-node .node-name { font-size: 12px; }
+  .penta-node .node-tag { font-size: 9px; }
+  .shock-grid { grid-template-columns: 1fr 1fr; }
+  .shock-number { font-size: clamp(20px,5vw,30px); }
+  .trend-grid { grid-template-columns: 1fr; }
+  .winner-grid { grid-template-columns: 1fr 1fr; }
+  .footer-nav { flex-direction: column; gap: 16px; }
+  .price-chart-area { height: 350px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div id="gradientBg"></div>
+
+<!-- ===== SIDE NAV ===== -->
+<nav id="side-nav">
+  <div class="nav-dot" data-sec="hero" style="--dot-color:#fff;" onclick="goTo('hero')">TOP<span class="label">처음으로</span></div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-sec="s-map" style="--dot-color:var(--c-openai);" onclick="goTo('s-map')">5강<span class="label">5강 구도 맵</span></div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-sec="s-openai" style="--dot-color:var(--c-openai);" onclick="goTo('s-openai')">OAI<span class="label">OpenAI</span></div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-sec="s-anthropic" style="--dot-color:var(--c-anthropic);" onclick="goTo('s-anthropic')">ANT<span class="label">Anthropic</span></div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-sec="s-google" style="--dot-color:var(--c-google);" onclick="goTo('s-google')">GGL<span class="label">Google</span></div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-sec="s-open" style="--dot-color:var(--c-meta);" onclick="goTo('s-open')">OSS<span class="label">오픈소스 진영</span></div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-sec="s-compare" style="--dot-color:#FFD700;" onclick="goTo('s-compare')">VS<span class="label">비교 분석</span></div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-sec="s-future" style="--dot-color:var(--c-deepseek);" onclick="goTo('s-future')">END<span class="label">전쟁의 승자</span></div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero" id="hero">
+  <div class="hero-subtitle">CHAPTER 3 &mdash; AI TREND ONBOARDING</div>
+  <h1 class="hero-title">AI 모델 전쟁<br>5강의 격전</h1>
+  <p class="hero-desc">OpenAI, Anthropic, Google, Meta, DeepSeek &mdash; 다섯 진영이 벌이는 치열한 AI 모델 경쟁의 <strong>전략과 무기</strong>를 낱낱이 해부합니다.</p>
+  <div class="scroll-indicator">
+    <span>SCROLL</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- ===================== 5강 구도 맵 ===================== -->
+<section class="section" id="s-map">
+<div class="container">
+  <div class="section-badge" style="border-color:rgba(16,163,127,0.3);">
+    <div class="dot" style="background:var(--c-openai);"></div>
+    SECTION 3.1
+  </div>
+  <h2 class="section-title">전쟁의 다섯 진영</h2>
+  <p class="section-desc">거대한 체스판 위에 다섯 명의 플레이어가 앉아 있습니다. 각자 고유한 전략과 병기를 가지고 있고, 누구도 쉽게 물러서지 않습니다.</p>
+
+  <!-- PENTAGON -->
+  <div class="pentagon-wrap" id="pentagonMap">
+    <svg class="penta-lines" id="pentaLines" viewBox="0 0 700 600"></svg>
+    <div class="penta-center">AI<br>MODEL<br>WAR</div>
+
+    <!-- OpenAI: top -->
+    <div class="penta-node" style="border-color:var(--c-openai);top:20px;left:50%;transform:translateX(-50%);" data-company="openai">
+      <div class="node-name" style="color:var(--c-openai);">OpenAI</div>
+      <div class="node-tag">규칙을 만드는 자</div>
+      <div class="node-popup">
+        <div class="popup-title" style="color:var(--c-openai);">OpenAI</div>
+        <div class="popup-models">GPT 시리즈, o 시리즈, Codex</div>
+        <div class="popup-strategy">선점자 우위 + 추론 혁신. GPT-4o에서 네이티브 멀티모달, o3로 추론 시간 연산 패러다임 개척</div>
+      </div>
+    </div>
+
+    <!-- Google: top-right -->
+    <div class="penta-node" style="border-color:var(--c-google);top:160px;right:10px;" data-company="google">
+      <div class="node-name" style="color:var(--c-google);">Google</div>
+      <div class="node-tag">인프라의 거인</div>
+      <div class="node-popup">
+        <div class="popup-title" style="color:var(--c-google);">Google</div>
+        <div class="popup-models">Gemini 시리즈 (Ultra/Pro/Flash)</div>
+        <div class="popup-strategy">초장문 컨텍스트(1M+) + 네이티브 멀티모달. 자체 TPU로 가격 경쟁력 확보</div>
+      </div>
+    </div>
+
+    <!-- DeepSeek: bottom-right -->
+    <div class="penta-node" style="border-color:var(--c-deepseek);bottom:40px;right:60px;" data-company="deepseek">
+      <div class="node-name" style="color:var(--c-deepseek);">DeepSeek</div>
+      <div class="node-tag">파괴적 혁신가</div>
+      <div class="node-popup">
+        <div class="popup-title" style="color:var(--c-deepseek);">DeepSeek</div>
+        <div class="popup-models">V3, R1, V3.1, V3.2</div>
+        <div class="popup-strategy">극한 효율 + 오픈소스. $5.576M으로 프론티어 모델 학습. MIT 라이선스</div>
+      </div>
+    </div>
+
+    <!-- Meta: bottom-left -->
+    <div class="penta-node" style="border-color:var(--c-meta);bottom:40px;left:60px;" data-company="meta">
+      <div class="node-name" style="color:var(--c-meta);">Meta</div>
+      <div class="node-tag">개방의 전도사</div>
+      <div class="node-popup">
+        <div class="popup-title" style="color:var(--c-meta);">Meta</div>
+        <div class="popup-models">LLaMA 1~4 시리즈</div>
+        <div class="popup-strategy">오픈소스 생태계 장악. LLaMA 4 Scout: 10M 토큰 컨텍스트, 109B MoE</div>
+      </div>
+    </div>
+
+    <!-- Anthropic: top-left -->
+    <div class="penta-node" style="border-color:var(--c-anthropic);top:160px;left:10px;" data-company="anthropic">
+      <div class="node-name" style="color:var(--c-anthropic);">Anthropic</div>
+      <div class="node-tag">신중한 도전자</div>
+      <div class="node-popup">
+        <div class="popup-title" style="color:var(--c-anthropic);">Anthropic</div>
+        <div class="popup-models">Claude 시리즈 (Opus/Sonnet/Haiku)</div>
+        <div class="popup-strategy">Constitutional AI 기반 안전성 + 코딩 특화. 티어 시스템으로 세분화</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5강 요약 테이블 -->
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>진영</th><th>대표 모델</th><th>핵심 전략</th><th>한마디 정의</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="highlight" style="color:var(--c-openai);">OpenAI</td><td>GPT 시리즈, o 시리즈</td><td>선점자 우위 + 추론 혁신</td><td>"규칙을 만드는 자"</td></tr>
+        <tr><td class="highlight" style="color:var(--c-anthropic);">Anthropic</td><td>Claude 시리즈</td><td>안전성 + 코딩 특화</td><td>"신중한 도전자"</td></tr>
+        <tr><td class="highlight" style="color:var(--c-google);">Google</td><td>Gemini 시리즈</td><td>초장문 컨텍스트 + 멀티모달</td><td>"인프라의 거인"</td></tr>
+        <tr><td class="highlight" style="color:var(--c-meta);">Meta</td><td>LLaMA 시리즈</td><td>오픈소스 생태계 장악</td><td>"개방의 전도사"</td></tr>
+        <tr><td class="highlight" style="color:var(--c-deepseek);">DeepSeek</td><td>V3, R1 시리즈</td><td>극한 효율 + 오픈소스</td><td>"파괴적 혁신가"</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== OpenAI ===================== -->
+<section class="section" id="s-openai">
+<div class="container">
+  <div class="section-badge" style="border-color:rgba(16,163,127,0.3);">
+    <div class="dot" style="background:var(--c-openai);"></div>
+    SECTION 3.2
+  </div>
+  <h2 class="section-title" style="color:var(--c-openai);">OpenAI</h2>
+  <p class="section-desc">ChatGPT로 AI 대중화의 문을 연 OpenAI는 전쟁의 <strong>규칙 자체를 바꿔왔습니다</strong>. GPT 계열의 진화와 추론 모델 o 시리즈로 새로운 패러다임을 개척합니다.</p>
+
+  <h3 class="sub-heading" style="color:var(--c-openai);">GPT 계열의 진화</h3>
+  <p class="sub-desc">OpenAI의 전략은 네 단계로 요약됩니다: 더 큰 모델 → 더 빠르고 효율적인 모델 → 더 깊이 생각하는 모델 → 용도별 특화 모델</p>
+
+  <div class="table-wrap">
+    <table class="data-table" id="tbl-openai">
+      <thead>
+        <tr>
+          <th>모델 <span class="sort-icon">&#9650;&#9660;</span></th>
+          <th>출시일 <span class="sort-icon">&#9650;&#9660;</span></th>
+          <th>주요 특징</th>
+          <th>컨텍스트</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="highlight">GPT-3.5</td><td>2022.11</td><td>ChatGPT 기반 모델, 대화형 AI 대중화 시작</td><td>4K → 16K</td></tr>
+        <tr><td class="highlight">GPT-4</td><td>2023.03</td><td>멀티모달 입력, 추론 능력 대폭 향상 (추정 ~1.7T MoE)</td><td>8K → 128K</td></tr>
+        <tr><td class="highlight">GPT-4 Turbo</td><td>2023.11</td><td>속도 향상, 비용 절감, 128K 컨텍스트</td><td>128K</td></tr>
+        <tr><td class="highlight">GPT-4o</td><td>2024.05</td><td>텍스트+이미지+오디오 네이티브 멀티모달</td><td>128K</td></tr>
+        <tr><td class="highlight">GPT-4.5</td><td>2025.02</td><td>패턴 인식 향상, 환각(hallucination) 감소</td><td>128K</td></tr>
+        <tr><td class="highlight">GPT-4.1 시리즈</td><td>2025.04</td><td>API 중심 최적화, 4.1/mini/nano 3종</td><td>1M</td></tr>
+        <tr><td class="highlight">GPT-5</td><td>2025 H2</td><td>멀티모달 통합, 추론 능력 대폭 향상</td><td>비공개</td></tr>
+        <tr><td class="highlight">GPT-5.2</td><td>2025.12</td><td>코드 특화(Codex), 리포 단위 추론</td><td>비공개</td></tr>
+        <tr><td class="highlight">GPT-5.4</td><td>2026.03</td><td>최신 플래그십, 추론+속도 균형</td><td>비공개</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="sub-heading" style="color:var(--c-openai);">o 시리즈 — "생각하는 AI"의 탄생</h3>
+  <p class="sub-desc">답변 전에 추가 연산 시간을 투입하여 깊이 사고하는 추론 모델. 체인 오브 소트(Chain of Thought)는 수학 시험에서 풀이 과정을 적으며 푸는 것과 같습니다.</p>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>모델</th><th>출시일</th><th>주요 특징</th><th>API 가격 (입력/출력)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="highlight">o1</td><td>2024.12</td><td>최초 추론 특화 모델, 수학/코딩 탁월</td><td>$15 / $60</td></tr>
+        <tr><td class="highlight">o3</td><td>2025.01</td><td>더 빠르고 정확한 추론</td><td>$10 / $40</td></tr>
+        <tr><td class="highlight">o3-mini</td><td>2025.01</td><td>경량 추론, 비용 효율적</td><td>$1.10 / $4.40</td></tr>
+        <tr><td class="highlight">o3 Pro</td><td>2025 H1</td><td>최고 수준 추론, 프로 전용</td><td>$150 / $600</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="quote-box" style="border-color:var(--c-openai);">
+    o 시리즈의 체인 오브 소트 추론은 이후 Google, Anthropic, DeepSeek 모두가 따라가게 되는 <strong>업계 표준</strong>이 됩니다.
+  </div>
+</div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== Anthropic ===================== -->
+<section class="section" id="s-anthropic">
+<div class="container">
+  <div class="section-badge" style="border-color:rgba(217,119,6,0.3);">
+    <div class="dot" style="background:var(--c-anthropic);"></div>
+    SECTION 3.3
+  </div>
+  <h2 class="section-title" style="color:var(--c-anthropic);">Anthropic</h2>
+  <p class="section-desc">"안전하게, 그러나 확실하게" — OpenAI 출신 연구자들이 세운 이 회사는 <strong>Constitutional AI(헌법적 AI)</strong>라는 독자적 안전 기술을 앞세워 차별화에 성공했습니다.</p>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>모델</th><th>출시일</th><th>주요 특징</th><th>컨텍스트</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="highlight">Claude 1</td><td>2023.03</td><td>첫 상용 모델, Constitutional AI 적용</td><td>9K → 100K</td></tr>
+        <tr><td class="highlight">Claude 2</td><td>2023.07</td><td>성능 대폭 향상, 200K 컨텍스트</td><td>200K</td></tr>
+        <tr><td class="highlight">Claude 3</td><td>2024.03</td><td>Opus/Sonnet/Haiku 3단계 티어, 멀티모달 입력</td><td>200K</td></tr>
+        <tr><td class="highlight">Claude 3.5 Sonnet</td><td>2024.06</td><td>Opus급 성능을 Sonnet 비용으로, 코딩 급상승</td><td>200K</td></tr>
+        <tr><td class="highlight">Claude 3.7 Sonnet</td><td>2025.02</td><td>하이브리드 추론 모델(확장된 사고 기능)</td><td>200K</td></tr>
+        <tr><td class="highlight">Claude 4</td><td>2025.05</td><td>차세대 아키텍처, 에이전틱 코딩 강화</td><td>200K</td></tr>
+        <tr><td class="highlight">Claude Opus 4.5</td><td>2025.11</td><td>최고 수준 코딩/분석, $15/$75</td><td>200K</td></tr>
+        <tr><td class="highlight">Claude Opus 4.6</td><td>2026.02</td><td>최신 플래그십 모델</td><td>200K</td></tr>
+        <tr><td class="highlight">Claude Sonnet 4.6</td><td>2026.02</td><td>최신 효율형, 코딩 벤치마크 최상위, $3/$15</td><td>200K</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="sub-heading" style="color:var(--c-anthropic);">비밀 무기: 티어 시스템</h3>
+  <p class="sub-desc">Opus/Sonnet/Haiku 3단계 티어 시스템 — 마치 자동차 라인업처럼 용도에 맞는 선택지를 제공합니다.</p>
+
+  <div class="trend-grid" style="grid-template-columns: repeat(3,1fr);">
+    <div class="trend-card" style="border-top:3px solid var(--c-anthropic);">
+      <div class="trend-num" style="background:var(--c-anthropic);-webkit-background-clip:text;">Opus</div>
+      <h4>프리미엄 세단</h4>
+      <p>최고 성능, 복잡한 분석과 추론에 최적화</p>
+    </div>
+    <div class="trend-card" style="border-top:3px solid var(--c-anthropic);">
+      <div class="trend-num" style="background:var(--c-anthropic);-webkit-background-clip:text;">Sonnet</div>
+      <h4>준중형 세단</h4>
+      <p>성능과 비용의 균형, 가장 인기 있는 선택</p>
+    </div>
+    <div class="trend-card" style="border-top:3px solid var(--c-anthropic);">
+      <div class="trend-num" style="background:var(--c-anthropic);-webkit-background-clip:text;">Haiku</div>
+      <h4>경차</h4>
+      <p>빠르고 저렴, 대량 처리에 적합</p>
+    </div>
+  </div>
+
+  <div class="quote-box" style="border-color:var(--c-anthropic);">
+    Claude 3.5 Sonnet(중간 티어)이 이전 세대 Claude 3 Opus(최상위 티어)를 뛰어넘는 <strong>세대 역전</strong> 현상 — 모델 효율성이 얼마나 빠르게 개선되고 있는지를 보여주는 증거입니다.
+  </div>
+</div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== Google ===================== -->
+<section class="section" id="s-google">
+<div class="container">
+  <div class="section-badge" style="border-color:rgba(66,133,244,0.3);">
+    <div class="dot" style="background:var(--c-google);"></div>
+    SECTION 3.4
+  </div>
+  <h2 class="section-title" style="color:var(--c-google);">Google</h2>
+  <p class="section-desc">2017년 트랜스포머 아키텍처를 발명한 AI 연구의 원조. ChatGPT에 선수를 뺏긴 이후, 거인은 본격적으로 반격에 나섭니다.</p>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>모델</th><th>출시일</th><th>주요 특징</th><th>컨텍스트</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="highlight">Gemini 1.0</td><td>2023.12</td><td>네이티브 멀티모달, Ultra/Pro/Nano 3단계</td><td>32K</td></tr>
+        <tr><td class="highlight">Gemini 1.5 Pro</td><td>2024.02</td><td>1M 토큰 컨텍스트의 혁신</td><td>1M → 2M</td></tr>
+        <tr><td class="highlight">Gemini 1.5 Flash</td><td>2024.05</td><td>경량 고속, 비용 효율 극대화</td><td>1M</td></tr>
+        <tr><td class="highlight">Gemini 2.0 Flash</td><td>2025.01</td><td>에이전틱 기능 강화</td><td>1M</td></tr>
+        <tr><td class="highlight">Gemini 2.0 Pro</td><td>2025.02</td><td>복잡한 작업용 고성능 모델</td><td>1M</td></tr>
+        <tr><td class="highlight">Gemini 2.5 Pro</td><td>2025.03~06</td><td>"사고하는 모델", 체인 오브 소트 추론</td><td>1M</td></tr>
+        <tr><td class="highlight">Gemini 2.5 Flash</td><td>2025.06~08</td><td>추론 + 속도 + 저비용의 균형</td><td>1M</td></tr>
+        <tr><td class="highlight">Gemini 2.5 Flash-Lite</td><td>2026.02</td><td>극저비용 저지연 모델</td><td>1M</td></tr>
+        <tr><td class="highlight">Gemini 3 Pro</td><td>2025.11</td><td>멀티모달 통합, 네이티브 도구, $5/$15</td><td>1M</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="sub-heading" style="color:var(--c-google);">Google의 두 가지 초능력</h3>
+
+  <div class="trend-grid" style="grid-template-columns:repeat(2,1fr);">
+    <div class="trend-card" style="border-top:3px solid var(--c-google);">
+      <div class="trend-num" style="background:var(--c-google);-webkit-background-clip:text;">1M+</div>
+      <h4>초장문 컨텍스트</h4>
+      <p>100만 토큰 = 책 7~8권 분량을 한 번에 읽고 이해. 압도적인 컨텍스트 윈도우는 Google의 가장 강력한 차별점</p>
+    </div>
+    <div class="trend-card" style="border-top:3px solid var(--c-google);">
+      <div class="trend-num" style="background:var(--c-google);-webkit-background-clip:text;">$0.30</div>
+      <h4>파격적 가격 경쟁력</h4>
+      <p>Gemini 2.5 Flash: 입력 $0.30/1M 토큰. 자체 TPU 인프라를 통해 경쟁사 대비 파격적 가격 유지</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== 오픈소스 진영 ===================== -->
+<section class="section" id="s-open">
+<div class="container">
+  <div class="section-badge" style="border-color:rgba(24,119,242,0.3);">
+    <div class="dot" style="background:var(--c-meta);"></div>
+    SECTION 3.5
+  </div>
+  <h2 class="section-title">오픈소스 진영</h2>
+  <p class="section-desc">판도를 뒤흔든 도전자들 — Meta의 LLaMA와 DeepSeek이 이끄는 오픈소스 혁명</p>
+
+  <h3 class="sub-heading" style="color:var(--c-meta);">Meta의 LLaMA — 개방의 전도사</h3>
+  <p class="sub-desc">"왜 AI 모델을 공개하냐"는 질문에 Meta의 답은 명확했습니다 — <strong>생태계를 장악하기 위해서</strong>.</p>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>모델</th><th>출시일</th><th>파라미터</th><th>주요 특징</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="highlight">LLaMA 1</td><td>2023.02</td><td>7B~65B</td><td>오픈소스 LLM 붐의 시작</td></tr>
+        <tr><td class="highlight">LLaMA 2</td><td>2023.07</td><td>7B~70B</td><td>상업적 사용 허가, RLHF 적용</td></tr>
+        <tr><td class="highlight">LLaMA 3</td><td>2024.04</td><td>8B~70B</td><td>성능 대폭 향상, 15T 토큰 학습</td></tr>
+        <tr><td class="highlight">LLaMA 3.1</td><td>2024.07</td><td>8B/70B/405B</td><td>최초 오픈소스 400B+ 모델, 128K</td></tr>
+        <tr><td class="highlight">LLaMA 4 Scout</td><td>2025.04</td><td>109B(17B 활성) MoE</td><td>10M 토큰 컨텍스트, 16명의 전문가</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="sub-heading" style="color:var(--c-deepseek);">DeepSeek — 파괴적 혁신가</h3>
+  <p class="sub-desc">2025년 1월, AI 업계 전체를 술렁이게 한 그 이름. <strong>학습 비용 약 557만 달러</strong>로 프론티어급 성능을 달성했습니다.</p>
+
+  <!-- DeepSeek 충격 카운터 -->
+  <div class="shock-grid" id="shockGrid">
+    <div class="shock-card">
+      <div class="shock-number" data-target="5576000" data-prefix="$" data-format="comma">$0</div>
+      <div class="shock-label">학습 비용</div>
+      <div class="shock-sub">빅테크 수십억 달러 대비</div>
+    </div>
+    <div class="shock-card">
+      <div class="shock-number" data-target="671" data-suffix="B">0</div>
+      <div class="shock-label">전체 파라미터</div>
+      <div class="shock-sub">DeepSeek-V3 MoE</div>
+    </div>
+    <div class="shock-card">
+      <div class="shock-number" data-target="37" data-suffix="B">0</div>
+      <div class="shock-label">활성 파라미터</div>
+      <div class="shock-sub">실제 추론 시 사용</div>
+    </div>
+    <div class="shock-card">
+      <div class="shock-number" data-target="100" data-suffix="%">0</div>
+      <div class="shock-label">오픈소스</div>
+      <div class="shock-sub">MIT 라이선스</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>모델</th><th>출시일</th><th>파라미터</th><th>주요 특징</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="highlight" style="color:var(--c-deepseek);">DeepSeek-V3</td><td>2024.12</td><td>671B(37B 활성) MoE</td><td>학습비용 $5.5M, MoE + Multi-head Latent Attention</td></tr>
+        <tr><td class="highlight" style="color:var(--c-deepseek);">DeepSeek-R1</td><td>2025.01</td><td>671B</td><td>오픈소스 추론 모델, 체인 오브 소트, MIT 라이선스</td></tr>
+        <tr><td class="highlight" style="color:var(--c-deepseek);">DeepSeek-V3.1</td><td>2025.08</td><td>671B(37B 활성)</td><td>V3 + R1 하이브리드, 128K 컨텍스트</td></tr>
+        <tr><td class="highlight" style="color:var(--c-deepseek);">DeepSeek-V3.2</td><td>2025.12</td><td>685B</td><td>MIT 라이선스, 128K, 최강 오픈소스 모델</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="quote-box" style="border-color:var(--c-deepseek);">
+    DeepSeek의 충격은 <strong>"돈이 많아야 AI를 만든다"는 공식을 깨뜨린 것</strong>입니다. 순수 강화학습(RL) 기반으로 추론 능력을 학습시킨 R1은 OpenAI o1에 필적하는 성능을 보여주었습니다.
+  </div>
+
+  <h3 class="sub-heading">그 외 주목할 오픈소스 모델들</h3>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>모델</th><th>개발사</th><th>파라미터</th><th>주목 포인트</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="highlight">Mistral 7B</td><td>Mistral AI</td><td>7B</td><td>작지만 강력, 슬라이딩 윈도우 어텐션</td></tr>
+        <tr><td class="highlight">Mixtral 8x7B</td><td>Mistral AI</td><td>46.7B(12.9B 활성) MoE</td><td>MoE 구조의 대중화</td></tr>
+        <tr><td class="highlight">Mistral Large 3</td><td>Mistral AI</td><td>비공개</td><td>Apache 2.0 라이선스로 전환</td></tr>
+        <tr><td class="highlight">Phi-4</td><td>Microsoft</td><td>14B</td><td>합성 데이터 학습, 수학 추론 강점</td></tr>
+        <tr><td class="highlight">Qwen 3.5</td><td>Alibaba</td><td>397B(17B 활성) MoE</td><td>GPQA Diamond 88.4, 최강 오픈소스 추론</td></tr>
+        <tr><td class="highlight">Grok 4.1</td><td>xAI</td><td>314B</td><td>Apache 2.0, 오픈 웨이트</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== 5강 비교 분석 ===================== -->
+<section class="section" id="s-compare">
+<div class="container">
+  <div class="section-badge" style="border-color:rgba(255,215,0,0.3);">
+    <div class="dot" style="background:#FFD700;"></div>
+    SECTION 3.6
+  </div>
+  <h2 class="section-title">5강 비교 분석</h2>
+  <p class="section-desc">각 진영의 최신 플래그십 모델을 한눈에 비교합니다.</p>
+
+  <!-- 모델 진화 타임라인 -->
+  <h3 class="sub-heading">모델 진화 타임라인</h3>
+  <p class="sub-desc">2022년 11월부터 2026년 3월까지 — 다섯 진영의 주요 모델 출시를 한눈에</p>
+
+  <div class="filter-bar" id="tlFilter">
+    <button class="filter-btn active" data-filter="all" style="--btn-color:rgba(255,255,255,0.2);">전체</button>
+    <button class="filter-btn" data-filter="openai" style="--btn-color:var(--c-openai);">OpenAI</button>
+    <button class="filter-btn" data-filter="anthropic" style="--btn-color:var(--c-anthropic);">Anthropic</button>
+    <button class="filter-btn" data-filter="google" style="--btn-color:var(--c-google);">Google</button>
+    <button class="filter-btn" data-filter="meta" style="--btn-color:var(--c-meta);">Meta</button>
+    <button class="filter-btn" data-filter="deepseek" style="--btn-color:var(--c-deepseek);">DeepSeek</button>
+  </div>
+
+  <div class="timeline-h" id="modelTimeline">
+    <div class="tl-track" id="tlTrack">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
+  <!-- 모델 비교 인터랙티브 표 -->
+  <h3 class="sub-heading">모델 스펙 종합 비교표</h3>
+
+  <div class="filter-bar" id="specFilter">
+    <button class="filter-btn active" data-filter="all" style="--btn-color:rgba(255,255,255,0.2);">전체</button>
+    <button class="filter-btn" data-filter="openai" style="--btn-color:var(--c-openai);">OpenAI</button>
+    <button class="filter-btn" data-filter="anthropic" style="--btn-color:var(--c-anthropic);">Anthropic</button>
+    <button class="filter-btn" data-filter="google" style="--btn-color:var(--c-google);">Google</button>
+    <button class="filter-btn" data-filter="meta" style="--btn-color:var(--c-meta);">Meta</button>
+    <button class="filter-btn" data-filter="deepseek" style="--btn-color:var(--c-deepseek);">DeepSeek</button>
+  </div>
+
+  <div class="table-wrap">
+    <table class="data-table" id="specTable">
+      <thead>
+        <tr>
+          <th data-sort="name">모델 <span class="sort-icon">&#9650;&#9660;</span></th>
+          <th data-sort="company">진영 <span class="sort-icon">&#9650;&#9660;</span></th>
+          <th data-sort="date">출시일 <span class="sort-icon">&#9650;&#9660;</span></th>
+          <th data-sort="context">컨텍스트 <span class="sort-icon">&#9650;&#9660;</span></th>
+          <th data-sort="license">라이선스</th>
+          <th data-sort="price">API 가격</th>
+          <th>핵심 강점</th>
+        </tr>
+      </thead>
+      <tbody id="specBody">
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 가격 경쟁 차트 -->
+  <h3 class="sub-heading">가격 경쟁 지형도</h3>
+  <p class="sub-desc">성능만큼이나 중요한 가격. API 가격(출력 기준 /1M 토큰)을 비교합니다.</p>
+
+  <div class="price-chart-area" id="priceChart">
+    <div class="price-y-label" style="bottom:55px;">$0</div>
+    <div class="price-y-label" style="bottom:115px;">$100</div>
+    <div class="price-y-label" style="bottom:175px;">$200</div>
+    <div class="price-y-label" style="bottom:235px;">$400</div>
+    <div class="price-y-label" style="bottom:315px;">$600</div>
+    <div class="price-grid-line" style="bottom:60px;"></div>
+    <div class="price-grid-line" style="bottom:120px;"></div>
+    <div class="price-grid-line" style="bottom:180px;"></div>
+    <div class="price-grid-line" style="bottom:240px;"></div>
+    <div class="price-grid-line" style="bottom:320px;"></div>
+    <div class="price-axis-label">API 출력 가격 ($/1M 토큰)</div>
+  </div>
+</div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== 전쟁의 승자 ===================== -->
+<section class="section" id="s-future">
+<div class="container">
+  <div class="section-badge" style="border-color:rgba(239,68,68,0.3);">
+    <div class="dot" style="background:var(--c-deepseek);"></div>
+    SECTION 3.7
+  </div>
+  <h2 class="section-title">전쟁의 승자는 누구인가</h2>
+  <p class="section-desc">이 전쟁에서 확실한 것은 하나입니다 — <strong>단 하나의 승자는 없다</strong>는 것.</p>
+
+  <h3 class="sub-heading">각 진영별 승리 영역</h3>
+
+  <div class="winner-grid">
+    <div class="winner-card" style="--wc:var(--c-openai);border-top:3px solid var(--c-openai);">
+      <div class="wc-name" style="color:var(--c-openai);">OpenAI</div>
+      <div class="wc-area">범용 AI 선점자 우위 유지.<br>추론 모델(o 시리즈) 카테고리 개척</div>
+    </div>
+    <div class="winner-card" style="--wc:var(--c-anthropic);border-top:3px solid var(--c-anthropic);">
+      <div class="wc-name" style="color:var(--c-anthropic);">Anthropic</div>
+      <div class="wc-area">코딩과 안전성에서 독보적.<br>Claude Sonnet 4.6 코딩 벤치마크 최상위</div>
+    </div>
+    <div class="winner-card" style="--wc:var(--c-google);border-top:3px solid var(--c-google);">
+      <div class="wc-name" style="color:var(--c-google);">Google</div>
+      <div class="wc-area">초장문 컨텍스트 + 가격 경쟁력.<br>자체 TPU 인프라의 강점</div>
+    </div>
+    <div class="winner-card" style="--wc:var(--c-meta);border-top:3px solid var(--c-meta);">
+      <div class="wc-name" style="color:var(--c-meta);">Meta</div>
+      <div class="wc-area">오픈소스 생태계 장악.<br>AI 인프라 표준을 만들어가는 중</div>
+    </div>
+    <div class="winner-card" style="--wc:var(--c-deepseek);border-top:3px solid var(--c-deepseek);">
+      <div class="wc-name" style="color:var(--c-deepseek);">DeepSeek</div>
+      <div class="wc-area">"효율의 극한" 증명.<br>$5.576M으로 프론티어 모델 학습 입증</div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">2025~2026년 핵심 트렌드</h3>
+
+  <div class="trend-grid">
+    <div class="trend-card">
+      <div class="trend-num">01</div>
+      <h4>추론 모델의 부상</h4>
+      <p>OpenAI o1을 시작으로 모든 진영이 "생각하는 모델"을 내놓고 있습니다. 단순히 빠르게 답하는 것이 아니라, 깊이 사고하여 더 정확한 답을 내는 방향.</p>
+    </div>
+    <div class="trend-card">
+      <div class="trend-num">02</div>
+      <h4>MoE 아키텍처의 대세화</h4>
+      <p>DeepSeek, LLaMA, Mixtral 등 오픈소스 중심으로 Mixture of Experts 구조가 표준이 되고 있습니다. 거대한 파라미터 중 일부만 활성화하여 효율 극대화.</p>
+    </div>
+    <div class="trend-card">
+      <div class="trend-num">03</div>
+      <h4>오픈소스의 역습</h4>
+      <p>2025년 후반부터 오픈소스 모델이 상용 모델과 벤치마크에서 대등한 성능을 보이기 시작. AI 접근성의 민주화를 의미합니다.</p>
+    </div>
+    <div class="trend-card">
+      <div class="trend-num">04</div>
+      <h4>용도별 세분화</h4>
+      <p>범용 모델 하나로 모든 것을 해결하던 시대에서, 추론용(o3), 코딩용(Codex), 경량용(Flash, Haiku, nano)으로 세분화.</p>
+    </div>
+    <div class="trend-card">
+      <div class="trend-num">05</div>
+      <h4>가격 전쟁 심화</h4>
+      <p>GPT-4 출시 당시 고가였던 API 가격이 1년 만에 수십 배 하락. 오픈소스 모델은 아예 무료. AI 활용의 경제적 장벽이 급격히 낮아지고 있습니다.</p>
+    </div>
+  </div>
+
+  <div class="quote-box" style="border-color:#FFD700;">
+    다음 챕터에서는 이 범용 모델들 위에 세워진 <strong>응용 서비스</strong> — ChatGPT, Perplexity, GitHub Copilot 등 — 이 어떻게 실제 업무를 바꾸고 있는지 살펴봅니다.
+  </div>
+
+  <!-- Chapter navigation -->
+  <div class="footer-nav">
+    <a href="ch2.html">&larr; Ch2로</a>
+    <a href="index.html">🏠 홈</a>
+    <a href="ch4.html">Ch4로 &rarr;</a>
+  </div>
+</div>
+</section>
+
+<div class="footer">
+  <p>AI 트렌드 온보딩 &mdash; Ch3. AI 모델 전쟁</p>
+</div>
+
+<script>
+// ===== NAVIGATION =====
+function goTo(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+}
+
+// ===== PARTICLE CANVAS =====
+(function() {
+  const c = document.getElementById('particles');
+  const ctx = c.getContext('2d');
+  let W, H, particles = [];
+  const colors = ['#10a37f','#d97706','#4285f4','#1877f2','#ef4444'];
+  function resize() { W = c.width = window.innerWidth; H = c.height = window.innerHeight; }
+  window.addEventListener('resize', resize);
+  resize();
+  for (let i = 0; i < 80; i++) {
+    particles.push({
+      x: Math.random()*W, y: Math.random()*H,
+      r: Math.random()*2+0.5,
+      dx: (Math.random()-0.5)*0.4,
+      dy: (Math.random()-0.5)*0.4,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      alpha: Math.random()*0.4+0.1
+    });
+  }
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    particles.forEach(p => {
+      p.x += p.dx; p.y += p.dy;
+      if (p.x < 0) p.x = W;
+      if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H;
+      if (p.y > H) p.y = 0;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = p.alpha;
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ===== SCROLL-BASED NAV HIGHLIGHT =====
+(function() {
+  const dots = document.querySelectorAll('#side-nav .nav-dot');
+  const lines = document.querySelectorAll('#side-nav .nav-line');
+  const sections = [];
+  dots.forEach(d => {
+    const sec = document.getElementById(d.dataset.sec);
+    if (sec) sections.push({ el: sec, dot: d });
+  });
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY + window.innerHeight / 3;
+    let activeIdx = 0;
+    sections.forEach((s, i) => {
+      if (scrollY >= s.el.offsetTop) activeIdx = i;
+    });
+    dots.forEach(d => d.classList.remove('active'));
+    lines.forEach(l => l.classList.remove('active'));
+    if (sections[activeIdx]) sections[activeIdx].dot.classList.add('active');
+    if (activeIdx > 0 && lines[activeIdx-1]) lines[activeIdx-1].classList.add('active');
+  });
+})();
+
+// ===== PENTAGON LINES =====
+(function() {
+  const svg = document.getElementById('pentaLines');
+  if (!svg) return;
+  setTimeout(() => {
+    const wrap = document.getElementById('pentagonMap');
+    const nodes = wrap.querySelectorAll('.penta-node');
+    const pts = [];
+    const wr = wrap.getBoundingClientRect();
+    nodes.forEach(n => {
+      const r = n.getBoundingClientRect();
+      pts.push({
+        x: r.left - wr.left + r.width/2,
+        y: r.top - wr.top + r.height/2
+      });
+    });
+    const colors = ['var(--c-openai)','var(--c-google)','var(--c-deepseek)','var(--c-meta)','var(--c-anthropic)'];
+    let pathD = '';
+    for (let i = 0; i < pts.length; i++) {
+      for (let j = i+1; j < pts.length; j++) {
+        pathD += `<line x1="${pts[i].x}" y1="${pts[i].y}" x2="${pts[j].x}" y2="${pts[j].y}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`;
+      }
+    }
+    // Pentagon outline
+    let outline = 'M';
+    pts.forEach((p,i) => { outline += `${p.x},${p.y} `; if(i<pts.length-1) outline+='L'; });
+    outline += 'Z';
+    pathD += `<path d="${outline}" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" stroke-dasharray="6,4"/>`;
+    svg.innerHTML = pathD;
+  }, 300);
+})();
+
+// ===== MODEL TIMELINE DATA =====
+const tlData = [
+  { date:'2022.11', model:'GPT-3.5', co:'openai', color:'var(--c-openai)', detail:'ChatGPT 출시' },
+  { date:'2023.02', model:'LLaMA 1', co:'meta', color:'var(--c-meta)', detail:'오픈소스 LLM 시작' },
+  { date:'2023.03', model:'GPT-4', co:'openai', color:'var(--c-openai)', detail:'멀티모달 입력' },
+  { date:'2023.03', model:'Claude 1', co:'anthropic', color:'var(--c-anthropic)', detail:'Constitutional AI' },
+  { date:'2023.07', model:'Claude 2', co:'anthropic', color:'var(--c-anthropic)', detail:'200K 컨텍스트' },
+  { date:'2023.07', model:'LLaMA 2', co:'meta', color:'var(--c-meta)', detail:'상업적 사용 허가' },
+  { date:'2023.11', model:'GPT-4 Turbo', co:'openai', color:'var(--c-openai)', detail:'128K, 비용 절감' },
+  { date:'2023.12', model:'Gemini 1.0', co:'google', color:'var(--c-google)', detail:'네이티브 멀티모달' },
+  { date:'2024.02', model:'Gemini 1.5 Pro', co:'google', color:'var(--c-google)', detail:'1M 컨텍스트!' },
+  { date:'2024.03', model:'Claude 3', co:'anthropic', color:'var(--c-anthropic)', detail:'3단계 티어 도입' },
+  { date:'2024.04', model:'LLaMA 3', co:'meta', color:'var(--c-meta)', detail:'15T 토큰 학습' },
+  { date:'2024.05', model:'GPT-4o', co:'openai', color:'var(--c-openai)', detail:'네이티브 멀티모달' },
+  { date:'2024.06', model:'Claude 3.5 Sonnet', co:'anthropic', color:'var(--c-anthropic)', detail:'세대 역전' },
+  { date:'2024.07', model:'LLaMA 3.1', co:'meta', color:'var(--c-meta)', detail:'405B 오픈소스' },
+  { date:'2024.12', model:'o1', co:'openai', color:'var(--c-openai)', detail:'최초 추론 모델' },
+  { date:'2024.12', model:'DeepSeek-V3', co:'deepseek', color:'var(--c-deepseek)', detail:'$5.5M 학습 비용' },
+  { date:'2025.01', model:'DeepSeek-R1', co:'deepseek', color:'var(--c-deepseek)', detail:'오픈소스 추론 모델' },
+  { date:'2025.01', model:'o3', co:'openai', color:'var(--c-openai)', detail:'더 빠른 추론' },
+  { date:'2025.01', model:'Gemini 2.0', co:'google', color:'var(--c-google)', detail:'에이전틱 기능' },
+  { date:'2025.02', model:'Claude 3.7', co:'anthropic', color:'var(--c-anthropic)', detail:'하이브리드 추론' },
+  { date:'2025.02', model:'GPT-4.5', co:'openai', color:'var(--c-openai)', detail:'환각 감소' },
+  { date:'2025.04', model:'GPT-4.1', co:'openai', color:'var(--c-openai)', detail:'1M 컨텍스트' },
+  { date:'2025.04', model:'LLaMA 4 Scout', co:'meta', color:'var(--c-meta)', detail:'10M 컨텍스트!' },
+  { date:'2025.05', model:'Claude 4', co:'anthropic', color:'var(--c-anthropic)', detail:'에이전틱 코딩' },
+  { date:'2025.06', model:'Gemini 2.5 Pro', co:'google', color:'var(--c-google)', detail:'사고하는 모델' },
+  { date:'2025.11', model:'Gemini 3 Pro', co:'google', color:'var(--c-google)', detail:'$5/$15' },
+  { date:'2025.11', model:'Claude Opus 4.5', co:'anthropic', color:'var(--c-anthropic)', detail:'$15/$75' },
+  { date:'2025.12', model:'GPT-5.2', co:'openai', color:'var(--c-openai)', detail:'Codex 코드 특화' },
+  { date:'2025.12', model:'DeepSeek-V3.2', co:'deepseek', color:'var(--c-deepseek)', detail:'685B 최강 OSS' },
+  { date:'2026.02', model:'Claude Opus 4.6', co:'anthropic', color:'var(--c-anthropic)', detail:'최신 플래그십' },
+  { date:'2026.02', model:'Gemini 2.5 FL', co:'google', color:'var(--c-google)', detail:'극저비용' },
+  { date:'2026.03', model:'GPT-5.4', co:'openai', color:'var(--c-openai)', detail:'추론+속도 균형' },
+];
+
+function renderTimeline(filter) {
+  const track = document.getElementById('tlTrack');
+  const filtered = filter === 'all' ? tlData : tlData.filter(d => d.co === filter);
+  track.innerHTML = '';
+  filtered.forEach(d => {
+    const item = document.createElement('div');
+    item.className = 'tl-item';
+    item.innerHTML = `
+      <div class="tl-date">${d.date}</div>
+      <div class="tl-dot-m" style="border-color:${d.color};"></div>
+      <div class="tl-model" style="color:${d.color};">${d.model}</div>
+      <div class="tl-detail">${d.detail}</div>
+    `;
+    track.appendChild(item);
+  });
+}
+renderTimeline('all');
+
+document.getElementById('tlFilter').addEventListener('click', e => {
+  if (!e.target.classList.contains('filter-btn')) return;
+  document.querySelectorAll('#tlFilter .filter-btn').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  renderTimeline(e.target.dataset.filter);
+});
+
+// ===== SPEC TABLE DATA =====
+const specData = [
+  { name:'GPT-5.4', company:'OpenAI', co:'openai', date:'2026.03', ctx:'비공개', ctxNum:0, license:'상용(API)', price:'$2.50/$10', priceNum:10, strength:'추론+속도 균형', color:'var(--c-openai)' },
+  { name:'Claude Opus 4.6', company:'Anthropic', co:'anthropic', date:'2026.02', ctx:'200K', ctxNum:200000, license:'상용(API)', price:'비공개', priceNum:0, strength:'안전성, 코딩', color:'var(--c-anthropic)' },
+  { name:'Gemini 3 Pro', company:'Google', co:'google', date:'2025.11', ctx:'1M', ctxNum:1000000, license:'상용(API)', price:'$5/$15', priceNum:15, strength:'멀티모달, 초장문', color:'var(--c-google)' },
+  { name:'LLaMA 4 Scout', company:'Meta', co:'meta', date:'2025.04', ctx:'10M', ctxNum:10000000, license:'오픈 웨이트', price:'무료', priceNum:-1, strength:'컨텍스트, 생태계', color:'var(--c-meta)' },
+  { name:'DeepSeek-V3.2', company:'DeepSeek', co:'deepseek', date:'2025.12', ctx:'128K', ctxNum:128000, license:'MIT (오픈소스)', price:'무료', priceNum:-1, strength:'효율성, 가성비', color:'var(--c-deepseek)' },
+  { name:'Claude Sonnet 4.6', company:'Anthropic', co:'anthropic', date:'2026.02', ctx:'200K', ctxNum:200000, license:'상용(API)', price:'$3/$15', priceNum:15, strength:'코딩 벤치마크 최상위', color:'var(--c-anthropic)' },
+  { name:'Gemini 2.5 Flash', company:'Google', co:'google', date:'2025.06', ctx:'1M', ctxNum:1000000, license:'상용(API)', price:'$0.30/$2.50', priceNum:2.5, strength:'추론+속도+저비용', color:'var(--c-google)' },
+  { name:'o3 Pro', company:'OpenAI', co:'openai', date:'2025 H1', ctx:'비공개', ctxNum:0, license:'상용(API)', price:'$150/$600', priceNum:600, strength:'최고 수준 추론', color:'var(--c-openai)' },
+];
+
+let specFilter = 'all';
+let specSort = { key: null, asc: true };
+
+function renderSpec() {
+  const body = document.getElementById('specBody');
+  let data = specFilter === 'all' ? [...specData] : specData.filter(d => d.co === specFilter);
+  if (specSort.key) {
+    data.sort((a,b) => {
+      let va = a[specSort.key], vb = b[specSort.key];
+      if (typeof va === 'number') return specSort.asc ? va - vb : vb - va;
+      return specSort.asc ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+    });
+  }
+  body.innerHTML = data.map(d => `
+    <tr data-co="${d.co}">
+      <td class="highlight" style="color:${d.color};">${d.name}</td>
+      <td>${d.company}</td>
+      <td>${d.date}</td>
+      <td>${d.ctx}</td>
+      <td>${d.license}</td>
+      <td>${d.price}</td>
+      <td>${d.strength}</td>
+    </tr>
+  `).join('');
+}
+renderSpec();
+
+document.getElementById('specFilter').addEventListener('click', e => {
+  if (!e.target.classList.contains('filter-btn')) return;
+  document.querySelectorAll('#specFilter .filter-btn').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  specFilter = e.target.dataset.filter;
+  renderSpec();
+});
+
+document.querySelectorAll('#specTable thead th[data-sort]').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.sort;
+    const sortMap = { name:'name', company:'company', date:'date', context:'ctxNum', license:'license', price:'priceNum' };
+    const realKey = sortMap[key] || key;
+    if (specSort.key === realKey) specSort.asc = !specSort.asc;
+    else { specSort.key = realKey; specSort.asc = true; }
+    document.querySelectorAll('#specTable thead th').forEach(t => t.classList.remove('sorted'));
+    th.classList.add('sorted');
+    renderSpec();
+  });
+});
+
+// ===== PRICE CHART =====
+(function() {
+  const chart = document.getElementById('priceChart');
+  const prices = [
+    { name:'o3 Pro', val:600, color:'var(--c-openai)' },
+    { name:'Opus 4.5', val:75, color:'var(--c-anthropic)' },
+    { name:'o3', val:40, color:'var(--c-openai)' },
+    { name:'GPT-5', val:30, color:'var(--c-openai)' },
+    { name:'Sonnet 4.6', val:15, color:'var(--c-anthropic)' },
+    { name:'Gemini 3', val:15, color:'var(--c-google)' },
+    { name:'GPT-5.4', val:10, color:'var(--c-openai)' },
+    { name:'Gemini 2.5P', val:10.5, color:'var(--c-google)' },
+    { name:'o3-mini', val:4.4, color:'var(--c-openai)' },
+    { name:'G2.5 Flash', val:2.5, color:'var(--c-google)' },
+    { name:'LLaMA 4', val:0, color:'var(--c-meta)' },
+    { name:'DeepSeek', val:0, color:'var(--c-deepseek)' },
+  ];
+  const maxVal = 600;
+  const maxH = 280;
+  const totalW = chart.offsetWidth || 900;
+  const barW = 36;
+  const gap = (totalW - 80) / prices.length;
+
+  prices.forEach((p, i) => {
+    const g = document.createElement('div');
+    g.className = 'price-bar-group';
+    g.style.left = (50 + i * gap) + 'px';
+    const h = p.val > 0 ? Math.max(12, (p.val / maxVal) * maxH) : 8;
+    g.innerHTML = `
+      <div class="price-bar" style="background:${p.color};height:0px;width:${barW}px;">
+        <div class="bar-val" style="color:${p.color};">${p.val > 0 ? '$'+p.val : 'FREE'}</div>
+      </div>
+      <div class="price-label">${p.name}</div>
+    `;
+    g.dataset.height = h;
+    chart.appendChild(g);
+  });
+
+  // Animate with ScrollTrigger
+  gsap.registerPlugin(ScrollTrigger);
+  ScrollTrigger.create({
+    trigger: '#priceChart',
+    start: 'top 80%',
+    once: true,
+    onEnter: () => {
+      document.querySelectorAll('.price-bar-group').forEach((g, i) => {
+        const bar = g.querySelector('.price-bar');
+        gsap.to(bar, {
+          height: g.dataset.height + 'px',
+          duration: 1.2,
+          delay: i * 0.08,
+          ease: 'power3.out'
+        });
+      });
+    }
+  });
+})();
+
+// ===== SHOCK COUNTER ANIMATION =====
+(function() {
+  gsap.registerPlugin(ScrollTrigger);
+  ScrollTrigger.create({
+    trigger: '#shockGrid',
+    start: 'top 80%',
+    once: true,
+    onEnter: () => {
+      document.querySelectorAll('.shock-number').forEach(el => {
+        const target = parseInt(el.dataset.target);
+        const prefix = el.dataset.prefix || '';
+        const suffix = el.dataset.suffix || '';
+        const useComma = el.dataset.format === 'comma';
+        const obj = { val: 0 };
+        gsap.to(obj, {
+          val: target,
+          duration: 2,
+          ease: 'power2.out',
+          onUpdate: () => {
+            const v = Math.round(obj.val);
+            const display = useComma ? v.toLocaleString() : v;
+            el.textContent = prefix + display + suffix;
+          }
+        });
+      });
+    }
+  });
+})();
+
+// ===== GSAP SCROLL ANIMATIONS =====
+gsap.registerPlugin(ScrollTrigger);
+
+// Animate event cards
+gsap.utils.toArray('.event-card, .trend-card, .winner-card, .shock-card').forEach(el => {
+  gsap.from(el, {
+    scrollTrigger: { trigger: el, start: 'top 85%', once: true },
+    y: 40, opacity: 0, duration: 0.8, ease: 'power3.out'
+  });
+});
+
+// Animate section titles
+gsap.utils.toArray('.section-title, .section-desc, .sub-heading, .sub-desc').forEach(el => {
+  gsap.from(el, {
+    scrollTrigger: { trigger: el, start: 'top 88%', once: true },
+    y: 30, opacity: 0, duration: 0.7, ease: 'power2.out'
+  });
+});
+
+// Animate tables
+gsap.utils.toArray('.table-wrap').forEach(el => {
+  gsap.from(el, {
+    scrollTrigger: { trigger: el, start: 'top 85%', once: true },
+    y: 30, opacity: 0, duration: 0.8, ease: 'power2.out'
+  });
+});
+
+// Animate quote boxes
+gsap.utils.toArray('.quote-box').forEach(el => {
+  gsap.from(el, {
+    scrollTrigger: { trigger: el, start: 'top 85%', once: true },
+    x: -40, opacity: 0, duration: 0.8, ease: 'power3.out'
+  });
+});
+
+// Hero animation
+gsap.from('.hero-subtitle', { y: 30, opacity: 0, duration: 1, delay: 0.2 });
+gsap.from('.hero-title', { y: 50, opacity: 0, duration: 1, delay: 0.5 });
+gsap.from('.hero-desc', { y: 30, opacity: 0, duration: 1, delay: 0.8 });
+gsap.from('.scroll-indicator', { y: 20, opacity: 0, duration: 1, delay: 1.1 });
+
+// Pentagon animation
+gsap.utils.toArray('.penta-node').forEach((el, i) => {
+  gsap.from(el, {
+    scrollTrigger: { trigger: '#pentagonMap', start: 'top 80%', once: true },
+    scale: 0, opacity: 0, duration: 0.6, delay: i * 0.15,
+    ease: 'back.out(1.7)'
+  });
+});
+</script>
+</body>
+</html>

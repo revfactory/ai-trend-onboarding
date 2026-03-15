@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch6. AI 팀을 지휘하라 — 하네스 엔지니어링</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --c-pink: #FF6B9D;
+  --c-gold: #FFD700;
+  --c-pink-dim: rgba(255,107,157,0.3);
+  --c-gold-dim: rgba(255,215,0,0.3);
+  --bg-dark: #0a0a0f;
+  --text-primary: #f0f0f5;
+  --text-secondary: #d0d0dd;
+  --card-bg: rgba(255,255,255,0.03);
+  --card-border: rgba(255,255,255,0.08);
+}
+
+html { scroll-behavior: auto; }
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== PARTICLE CANVAS ===== */
+#particles {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+}
+
+#gradientBg {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+  opacity: 0.35;
+  background: radial-gradient(ellipse at 30% 50%, var(--c-pink-dim) 0%, transparent 70%);
+}
+
+/* ===== LEFT NAV ===== */
+#side-nav {
+  position: fixed; left: 28px; top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 0;
+}
+#side-nav .nav-line {
+  width: 2px; height: 28px;
+  background: rgba(255,255,255,0.12);
+  transition: background 0.4s;
+}
+#side-nav .nav-line.active { background: rgba(255,255,255,0.5); }
+#side-nav .nav-dot {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 11px;
+  cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.15);
+  background: rgba(10,10,15,0.8);
+  backdrop-filter: blur(10px);
+  transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+  position: relative; color: var(--text-secondary);
+}
+#side-nav .nav-dot:hover {
+  transform: scale(1.12);
+  border-color: rgba(255,255,255,0.5);
+}
+#side-nav .nav-dot.active {
+  transform: scale(1.18);
+  border-color: var(--c-pink);
+  box-shadow: 0 0 18px var(--c-pink), 0 0 36px rgba(255,107,157,0.15);
+  background: rgba(255,107,157,0.1);
+  color: var(--text-primary);
+}
+#side-nav .nav-dot .label {
+  position: absolute; left: 54px;
+  white-space: nowrap; font-size: 11px; font-weight: 500;
+  color: var(--text-secondary);
+  opacity: 0; transform: translateX(-8px);
+  transition: all 0.3s; pointer-events: none;
+}
+#side-nav .nav-dot:hover .label,
+#side-nav .nav-dot.active .label {
+  opacity: 1; transform: translateX(0); color: var(--text-primary);
+}
+
+/* ===== HERO ===== */
+.hero {
+  height: 100vh;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  text-align: center; position: relative;
+  z-index: 1; padding: 0 20px;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 8px 24px; border-radius: 50px;
+  font-size: 14px; font-weight: 500; letter-spacing: 3px;
+  margin-bottom: 28px;
+  border: 1px solid rgba(255,107,157,0.3);
+  background: rgba(255,107,157,0.08);
+  backdrop-filter: blur(10px); color: var(--c-pink);
+}
+.hero-badge .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--c-pink);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:0.5; transform:scale(1.3); }
+}
+.hero-title {
+  font-size: clamp(36px,7vw,76px);
+  font-weight: 900; line-height: 1.15;
+  margin-bottom: 28px;
+  background: linear-gradient(135deg, var(--c-pink), var(--c-gold));
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradShift 4s ease infinite;
+}
+@keyframes gradShift {
+  0%,100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.hero-quote {
+  font-size: clamp(15px,2vw,20px);
+  font-weight: 300; color: var(--text-secondary);
+  max-width: 720px; line-height: 1.8;
+  margin-bottom: 48px;
+}
+.scroll-indicator {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+  animation: float 2s ease-in-out infinite;
+}
+.scroll-indicator span { font-size: 13px; color: var(--text-secondary); letter-spacing: 3px; }
+.scroll-arrow {
+  width: 20px; height: 20px;
+  border-right: 2px solid var(--text-secondary);
+  border-bottom: 2px solid var(--text-secondary);
+  transform: rotate(45deg);
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(10px); }
+}
+
+/* ===== CONDUCTOR VISUAL ===== */
+.conductor-visual {
+  position: absolute; bottom: 18vh; left: 50%; transform: translateX(-50%);
+  width: 320px; height: 200px; pointer-events: none;
+}
+.baton {
+  position: absolute; left: 50%; top: 40%;
+  width: 3px; height: 80px;
+  background: linear-gradient(to bottom, var(--c-gold), transparent);
+  transform-origin: bottom center;
+  animation: conduct 2.5s ease-in-out infinite;
+  border-radius: 2px;
+}
+@keyframes conduct {
+  0% { transform: rotate(-25deg); }
+  25% { transform: rotate(15deg); }
+  50% { transform: rotate(-10deg); }
+  75% { transform: rotate(20deg); }
+  100% { transform: rotate(-25deg); }
+}
+.music-note {
+  position: absolute; font-size: 18px; opacity: 0;
+  animation: noteFloat 3s ease-in-out infinite;
+}
+.music-note:nth-child(2) { left: 20%; top: 30%; animation-delay: 0s; }
+.music-note:nth-child(3) { left: 70%; top: 20%; animation-delay: 0.8s; }
+.music-note:nth-child(4) { left: 40%; top: 10%; animation-delay: 1.6s; }
+.music-note:nth-child(5) { left: 80%; top: 40%; animation-delay: 0.4s; }
+.music-note:nth-child(6) { left: 10%; top: 50%; animation-delay: 1.2s; }
+@keyframes noteFloat {
+  0% { opacity:0; transform: translateY(20px); }
+  30% { opacity:0.6; }
+  70% { opacity:0.4; }
+  100% { opacity:0; transform: translateY(-40px); }
+}
+
+/* ===== SECTIONS ===== */
+.section {
+  min-height: 100vh; position: relative;
+  z-index: 1; padding: 120px 0;
+}
+.container {
+  max-width: 1100px; margin: 0 auto;
+  padding: 0 80px 0 120px;
+}
+.section-badge {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 6px 20px; border-radius: 50px;
+  font-size: 13px; font-weight: 500; letter-spacing: 2px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255,107,157,0.25);
+  background: rgba(255,107,157,0.06);
+  color: var(--c-pink);
+}
+.section-badge .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--c-pink);
+}
+.section-title {
+  font-size: clamp(28px,4.5vw,52px);
+  font-weight: 900; line-height: 1.2;
+  margin-bottom: 20px;
+}
+.section-desc {
+  font-size: clamp(15px,1.8vw,18px);
+  font-weight: 300; color: var(--text-secondary);
+  line-height: 1.8; max-width: 800px; margin-bottom: 50px;
+}
+.sub-heading {
+  font-size: clamp(20px,3vw,28px);
+  font-weight: 700; margin: 50px 0 16px;
+}
+.sub-desc {
+  font-size: 15px; color: var(--text-secondary);
+  line-height: 1.8; margin-bottom: 28px; max-width: 800px;
+}
+
+/* ===== EVOLUTION DIAGRAM ===== */
+.evo-container {
+  display: flex; gap: 0; align-items: stretch;
+  margin: 40px 0; position: relative;
+}
+.evo-stage {
+  flex: 1; padding: 32px 24px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  text-align: center;
+  transition: all 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
+  cursor: pointer; position: relative; overflow: hidden;
+}
+.evo-stage:hover, .evo-stage.active {
+  transform: translateY(-8px) scale(1.03);
+  border-color: rgba(255,255,255,0.2);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+}
+.evo-stage .evo-icon {
+  font-size: 48px; margin-bottom: 16px; display: block;
+}
+.evo-stage .evo-year {
+  font-size: 13px; font-weight: 700;
+  letter-spacing: 2px; margin-bottom: 8px;
+}
+.evo-stage .evo-name {
+  font-size: 20px; font-weight: 900; margin-bottom: 10px;
+}
+.evo-stage .evo-metaphor {
+  font-size: 13px; color: var(--text-secondary);
+  margin-bottom: 12px; font-weight: 400;
+}
+.evo-stage .evo-detail {
+  font-size: 14px; color: var(--text-secondary);
+  line-height: 1.7; font-weight: 300;
+}
+.evo-arrow {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; color: var(--c-pink); padding: 0 8px;
+  flex-shrink: 0; opacity: 0.6;
+}
+.evo-stage:nth-child(1) { --stage-c: #FF6B9D; }
+.evo-stage:nth-child(3) { --stage-c: #C084FC; }
+.evo-stage:nth-child(5) { --stage-c: #FFD700; }
+.evo-stage .evo-year { color: var(--stage-c); }
+.evo-stage:hover, .evo-stage.active { border-color: var(--stage-c); }
+.evo-stage::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 100%; height: 3px;
+  background: var(--stage-c); border-radius: 20px 20px 0 0;
+  opacity: 0; transition: opacity 0.4s;
+}
+.evo-stage:hover::before, .evo-stage.active::before { opacity: 1; }
+
+/* ===== WHY NOW TABLE ===== */
+.data-table {
+  width: 100%; border-collapse: separate;
+  border-spacing: 0; margin: 30px 0; font-size: 14px;
+}
+.data-table thead th {
+  padding: 14px 18px; text-align: left;
+  font-weight: 700; font-size: 12px;
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-secondary);
+}
+.data-table tbody td {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-weight: 400; font-size: 14px;
+}
+.data-table tbody tr { transition: background 0.3s; }
+.data-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+/* ===== HARNESS STRUCTURE DIAGRAM ===== */
+.harness-diagram {
+  margin: 40px 0; position: relative;
+}
+.harness-orch {
+  background: linear-gradient(135deg, rgba(255,107,157,0.15), rgba(255,215,0,0.15));
+  border: 2px solid rgba(255,107,157,0.4);
+  border-radius: 24px; padding: 32px;
+  text-align: center; margin-bottom: 20px;
+  cursor: pointer; transition: all 0.4s;
+}
+.harness-orch:hover {
+  border-color: var(--c-pink);
+  box-shadow: 0 0 30px rgba(255,107,157,0.2);
+}
+.harness-orch h3 {
+  font-size: 22px; font-weight: 900;
+  margin-bottom: 6px;
+  background: linear-gradient(135deg, var(--c-pink), var(--c-gold));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.harness-orch p { font-size: 14px; color: var(--text-secondary); }
+.harness-conn {
+  display: flex; justify-content: center; gap: 60px;
+  margin: 16px 0; position: relative;
+}
+.harness-conn::before {
+  content: ''; position: absolute; top: 0;
+  left: 15%; right: 15%; height: 2px;
+  background: linear-gradient(90deg, var(--c-pink), var(--c-gold));
+  opacity: 0.4;
+}
+.conn-line {
+  width: 2px; height: 40px;
+  background: linear-gradient(to bottom, rgba(255,107,157,0.5), rgba(255,215,0,0.3));
+}
+.harness-agents {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+.h-agent-card {
+  padding: 24px; border-radius: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  text-align: center; cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+.h-agent-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(255,255,255,0.2);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+}
+.h-agent-card .agent-icon { font-size: 32px; margin-bottom: 10px; display: block; }
+.h-agent-card .agent-name { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.h-agent-card .agent-role { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+/* ===== HARNESS DETAIL PANEL ===== */
+.harness-detail {
+  margin-top: 24px; padding: 28px;
+  background: rgba(255,107,157,0.05);
+  border: 1px solid rgba(255,107,157,0.2);
+  border-radius: 20px;
+  display: none;
+}
+.harness-detail.visible { display: block; animation: fadeSlideUp 0.4s ease; }
+.harness-detail h4 { font-size: 18px; font-weight: 700; margin-bottom: 12px; color: var(--c-pink); }
+.harness-detail table { width: 100%; }
+.harness-detail table td { padding: 8px 12px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.harness-detail table td:first-child { font-weight: 700; width: 100px; color: var(--c-gold); }
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== DESIGN PATTERN CARDS ===== */
+.pattern-tabs {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  margin: 30px 0 0;
+}
+.pattern-tab {
+  padding: 10px 20px; border-radius: 50px;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  transition: all 0.3s;
+}
+.pattern-tab:hover { border-color: rgba(255,255,255,0.25); color: var(--text-primary); }
+.pattern-tab.active {
+  border-color: var(--c-pink);
+  background: rgba(255,107,157,0.12);
+  color: var(--c-pink);
+}
+.pattern-panel {
+  margin-top: 24px; padding: 36px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  display: none;
+}
+.pattern-panel.active { display: block; animation: fadeSlideUp 0.4s ease; }
+.pattern-panel h3 {
+  font-size: 22px; font-weight: 900; margin-bottom: 8px;
+}
+.pattern-panel .pattern-fit {
+  font-size: 13px; color: var(--c-gold); font-weight: 500;
+  margin-bottom: 20px;
+}
+.pattern-panel .pattern-desc {
+  font-size: 15px; color: var(--text-secondary);
+  line-height: 1.8; margin-bottom: 24px;
+}
+.pattern-diagram {
+  padding: 28px; background: rgba(0,0,0,0.3);
+  border-radius: 14px; font-family: 'Noto Sans KR', monospace;
+  font-size: 14px; line-height: 2; color: var(--text-secondary);
+  overflow-x: auto; white-space: pre;
+  margin-bottom: 20px;
+}
+.pattern-diagram .highlight { color: var(--c-pink); font-weight: 700; }
+.pattern-diagram .gold { color: var(--c-gold); font-weight: 700; }
+.pattern-diagram .arrow { color: rgba(255,255,255,0.4); }
+
+/* ===== PATTERN COMPARE TABLE ===== */
+.pattern-compare {
+  margin: 40px 0;
+}
+
+/* ===== FILE TREE ===== */
+.file-tree {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--card-border);
+  border-radius: 16px; padding: 28px;
+  margin: 30px 0; font-size: 14px;
+  font-family: 'Noto Sans KR', monospace;
+}
+.file-tree .tree-line {
+  padding: 6px 0; cursor: default;
+  transition: background 0.2s; border-radius: 4px;
+  padding-left: 8px;
+}
+.file-tree .tree-line:hover { background: rgba(255,255,255,0.04); }
+.file-tree .tree-folder { color: var(--c-gold); font-weight: 700; cursor: pointer; }
+.file-tree .tree-file { color: var(--text-secondary); }
+.file-tree .tree-comment { color: var(--c-pink); font-size: 12px; opacity: 0.7; }
+.file-tree .tree-indent { display: inline-block; }
+.tree-folder-content { overflow: hidden; transition: max-height 0.3s ease; }
+.tree-folder-content.collapsed { max-height: 0 !important; }
+
+/* ===== CODE BLOCK ===== */
+.code-block {
+  background: rgba(0,0,0,0.45);
+  border: 1px solid var(--card-border);
+  border-radius: 14px; padding: 24px;
+  margin: 24px 0; font-size: 13px;
+  font-family: 'Noto Sans KR', monospace;
+  line-height: 1.8; overflow-x: auto;
+  color: var(--text-secondary);
+}
+.code-block .kw { color: var(--c-pink); font-weight: 700; }
+.code-block .str { color: var(--c-gold); }
+.code-block .cm { color: rgba(255,255,255,0.3); }
+
+/* ===== FRAMEWORK CARDS ===== */
+.fw-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px; margin: 30px 0;
+}
+.fw-card {
+  padding: 28px; border-radius: 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+  cursor: default;
+}
+.fw-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(255,255,255,0.18);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+}
+.fw-card .fw-name {
+  font-size: 18px; font-weight: 900; margin-bottom: 4px;
+}
+.fw-card .fw-maker {
+  font-size: 12px; color: var(--text-secondary); margin-bottom: 14px;
+}
+.fw-card .fw-feat {
+  font-size: 14px; color: var(--c-pink); font-weight: 500; margin-bottom: 8px;
+}
+.fw-card .fw-use {
+  font-size: 13px; color: var(--text-secondary); line-height: 1.6;
+}
+
+/* ===== MCP SECTION ===== */
+.mcp-visual {
+  display: flex; align-items: center; justify-content: center;
+  gap: 24px; margin: 36px 0; flex-wrap: wrap;
+}
+.mcp-box {
+  padding: 28px 32px; border-radius: 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  text-align: center; min-width: 180px;
+  transition: all 0.4s;
+}
+.mcp-box:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.15); }
+.mcp-box .mcp-icon { font-size: 36px; margin-bottom: 8px; display: block; }
+.mcp-box .mcp-label { font-size: 15px; font-weight: 700; }
+.mcp-box .mcp-sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.mcp-connector {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; color: var(--c-gold); font-weight: 700;
+}
+.mcp-connector .mcp-proto {
+  padding: 8px 20px; border-radius: 50px;
+  background: linear-gradient(135deg, rgba(255,107,157,0.2), rgba(255,215,0,0.2));
+  border: 1px solid rgba(255,215,0,0.3);
+  font-size: 14px; font-weight: 900;
+}
+.mcp-connector .mcp-arrows { font-size: 20px; opacity: 0.5; }
+
+/* ===== MCP TIMELINE ===== */
+.mcp-timeline {
+  margin: 30px 0; position: relative;
+  padding-left: 24px;
+  border-left: 2px solid rgba(255,107,157,0.2);
+}
+.mcp-event {
+  padding: 16px 0 16px 24px; position: relative;
+}
+.mcp-event::before {
+  content: ''; position: absolute;
+  left: -7px; top: 22px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--c-pink);
+  border: 2px solid var(--bg-dark);
+}
+.mcp-event .mcp-date { font-size: 13px; color: var(--c-gold); font-weight: 700; margin-bottom: 4px; }
+.mcp-event .mcp-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.mcp-event .mcp-meaning { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+/* ===== ENTERPRISE LIST ===== */
+.enterprise-list {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px; margin: 30px 0;
+}
+.enterprise-item {
+  padding: 20px; border-radius: 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  transition: all 0.3s;
+}
+.enterprise-item:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.15); }
+.enterprise-item .ent-name { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.enterprise-item .ent-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+/* ===== ROLE TRANSITION ===== */
+.role-grid {
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  gap: 16px; align-items: center; margin: 30px 0;
+}
+.role-col { display: flex; flex-direction: column; gap: 12px; }
+.role-item {
+  padding: 18px; border-radius: 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  font-size: 14px; line-height: 1.6;
+  transition: all 0.3s;
+}
+.role-item:hover { transform: translateX(4px); border-color: rgba(255,255,255,0.15); }
+.role-arrow-col {
+  display: flex; flex-direction: column; gap: 12px;
+  align-items: center; font-size: 24px; color: var(--c-pink); opacity: 0.5;
+}
+
+/* ===== SKILLS PENTAGON ===== */
+.skills-list {
+  display: flex; flex-direction: column; gap: 14px; margin: 30px 0;
+}
+.skill-item {
+  display: flex; gap: 20px; align-items: flex-start;
+  padding: 24px; border-radius: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  transition: all 0.4s; cursor: default;
+}
+.skill-item:hover {
+  transform: translateX(8px);
+  border-color: rgba(255,107,157,0.3);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+}
+.skill-num {
+  font-size: 32px; font-weight: 900; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--c-pink), var(--c-gold));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  width: 48px; text-align: center;
+}
+.skill-content h4 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+.skill-content p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+
+/* ===== QUOTE BOX ===== */
+.quote-box {
+  padding: 28px 36px;
+  border-left: 3px solid var(--c-pink);
+  background: rgba(255,107,157,0.04);
+  border-radius: 0 16px 16px 0;
+  margin: 36px 0; font-size: 16px;
+  font-weight: 400; line-height: 1.8;
+  color: var(--text-secondary);
+}
+.quote-box .quote-src {
+  margin-top: 12px; font-size: 13px;
+  color: rgba(255,255,255,0.35); font-weight: 500;
+}
+
+/* ===== KEY TAKEAWAYS ===== */
+.takeaway-cards {
+  display: flex; flex-direction: column; gap: 20px; margin: 30px 0;
+}
+.takeaway-card {
+  display: flex; gap: 24px; align-items: flex-start;
+  padding: 32px; border-radius: 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  transition: all 0.5s; cursor: default;
+}
+.takeaway-card:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.12);
+  transform: translateX(8px);
+}
+.takeaway-num {
+  font-size: 42px; font-weight: 900; flex-shrink: 0; width: 56px;
+  background: linear-gradient(135deg, var(--c-pink), var(--c-gold));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.takeaway-text h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.takeaway-text p { font-size: 15px; color: var(--text-secondary); line-height: 1.7; font-weight: 300; }
+
+/* ===== SUMMARY TABLE ===== */
+.summary-table {
+  width: 100%; border-collapse: separate;
+  border-spacing: 0; margin: 30px 0;
+}
+.summary-table thead th {
+  padding: 14px 18px; text-align: left;
+  font-weight: 700; font-size: 13px;
+  letter-spacing: 1px;
+  border-bottom: 2px solid rgba(255,107,157,0.3);
+  color: var(--c-pink);
+}
+.summary-table tbody td {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 14px;
+}
+.summary-table tbody tr { transition: background 0.3s; }
+.summary-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+.summary-table .concept { font-weight: 700; color: var(--c-gold); }
+.summary-table .keyword { color: var(--c-pink); font-weight: 500; }
+
+/* ===== DIVIDER ===== */
+.section-divider {
+  height: 160px; display: flex;
+  align-items: center; justify-content: center;
+  position: relative; z-index: 1;
+}
+.divider-line {
+  width: 1px; height: 80px;
+  background: linear-gradient(to bottom, transparent, rgba(255,107,157,0.3), transparent);
+}
+
+/* ===== FOOTER / EPILOGUE ===== */
+.footer {
+  text-align: center; padding: 100px 20px 60px;
+  position: relative; z-index: 1;
+}
+.footer .epilogue-title {
+  font-size: clamp(24px,4vw,40px);
+  font-weight: 900; margin-bottom: 20px;
+  background: linear-gradient(135deg, var(--c-pink), var(--c-gold));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.footer .epilogue-text {
+  font-size: 16px; color: var(--text-secondary);
+  line-height: 1.9; max-width: 650px; margin: 0 auto 40px;
+}
+.footer .nav-links {
+  display: flex; justify-content: center; gap: 40px; margin-top: 40px;
+}
+.footer .nav-links a {
+  color: var(--text-secondary); text-decoration: none;
+  font-size: 15px; font-weight: 500;
+  transition: color 0.3s;
+}
+.footer .nav-links a:hover { color: var(--c-pink); }
+.footer .ref-section {
+  margin-top: 60px; text-align: left;
+  max-width: 700px; margin-left: auto; margin-right: auto;
+}
+.footer .ref-section h4 {
+  font-size: 14px; font-weight: 700;
+  color: var(--text-secondary); letter-spacing: 2px;
+  margin-bottom: 16px;
+}
+.footer .ref-section a {
+  display: block; font-size: 13px;
+  color: rgba(255,255,255,0.35); text-decoration: none;
+  line-height: 2; transition: color 0.3s;
+}
+.footer .ref-section a:hover { color: var(--c-pink); }
+
+/* ===== BENCH STAT ===== */
+.bench-stat {
+  display: flex; gap: 24px; align-items: center;
+  justify-content: center; margin: 36px 0; flex-wrap: wrap;
+}
+.bench-box {
+  padding: 24px 32px; border-radius: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  text-align: center; min-width: 140px;
+}
+.bench-box .bench-val {
+  font-size: 36px; font-weight: 900; line-height: 1;
+}
+.bench-box .bench-label {
+  font-size: 12px; color: var(--text-secondary); margin-top: 6px;
+}
+.bench-arrow {
+  font-size: 32px; font-weight: 900;
+  background: linear-gradient(135deg, var(--c-pink), var(--c-gold));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.bench-note {
+  text-align: center; font-size: 13px;
+  color: var(--text-secondary); margin-top: 8px;
+}
+
+/* ===== WORKFLOW PHASE ===== */
+.workflow-phases {
+  margin: 30px 0; position: relative;
+}
+.wf-phase {
+  padding: 24px; margin-bottom: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px; transition: all 0.4s;
+  cursor: pointer;
+}
+.wf-phase:hover {
+  border-color: rgba(255,107,157,0.3);
+  transform: translateX(6px);
+}
+.wf-phase.expanded {
+  border-color: rgba(255,107,157,0.4);
+  background: rgba(255,107,157,0.04);
+}
+.wf-phase-header {
+  display: flex; align-items: center; gap: 16px;
+}
+.wf-phase-num {
+  font-size: 13px; font-weight: 900; color: var(--c-gold);
+  padding: 4px 14px; border-radius: 50px;
+  background: rgba(255,215,0,0.1);
+  border: 1px solid rgba(255,215,0,0.2);
+}
+.wf-phase-title { font-size: 17px; font-weight: 700; }
+.wf-phase-pattern { font-size: 12px; color: var(--c-pink); margin-left: auto; }
+.wf-phase-body {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.4s;
+  font-size: 14px; color: var(--text-secondary); line-height: 1.8;
+}
+.wf-phase.expanded .wf-phase-body {
+  max-height: 400px; padding-top: 16px;
+}
+.wf-phase-flow {
+  padding: 16px; background: rgba(0,0,0,0.3);
+  border-radius: 10px; font-family: 'Noto Sans KR', monospace;
+  font-size: 13px; line-height: 2; white-space: pre; overflow-x: auto;
+  margin-top: 12px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  #side-nav { left: 10px; }
+  #side-nav .nav-dot { width: 32px; height: 32px; font-size: 9px; }
+  #side-nav .nav-dot .label { display: none; }
+  #side-nav .nav-line { height: 16px; }
+  .container { padding: 0 20px 0 60px; }
+  .evo-container { flex-direction: column; }
+  .evo-arrow { transform: rotate(90deg); padding: 8px 0; }
+  .role-grid { grid-template-columns: 1fr; }
+  .role-arrow-col { flex-direction: row; transform: rotate(90deg); }
+  .mcp-visual { flex-direction: column; }
+  .harness-conn { gap: 20px; }
+  .bench-stat { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- PARTICLE CANVAS -->
+<canvas id="particles"></canvas>
+<div id="gradientBg"></div>
+
+<!-- LEFT NAV -->
+<nav id="side-nav">
+  <div class="nav-dot" data-target="hero" onclick="smoothScroll('hero')">
+    <span style="font-size:14px">&#9835;</span>
+    <span class="label">AI 팀을 지휘하라</span>
+  </div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-target="sec-6-1" onclick="smoothScroll('sec-6-1')">
+    6.1
+    <span class="label">세 번째 물결</span>
+  </div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-target="sec-6-2" onclick="smoothScroll('sec-6-2')">
+    6.2
+    <span class="label">하네스 구조</span>
+  </div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-target="sec-6-3" onclick="smoothScroll('sec-6-3')">
+    6.3
+    <span class="label">디자인 패턴</span>
+  </div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-target="sec-6-4" onclick="smoothScroll('sec-6-4')">
+    6.4
+    <span class="label">실전 가이드</span>
+  </div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-target="sec-6-5" onclick="smoothScroll('sec-6-5')">
+    6.5
+    <span class="label">실제 사례</span>
+  </div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-target="sec-6-6" onclick="smoothScroll('sec-6-6')">
+    6.6
+    <span class="label">생태계와 도구</span>
+  </div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-target="sec-6-7" onclick="smoothScroll('sec-6-7')">
+    6.7
+    <span class="label">미래 커리어</span>
+  </div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-target="sec-6-8" onclick="smoothScroll('sec-6-8')">
+    6.8
+    <span class="label">핵심 정리</span>
+  </div>
+</nav>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero" id="hero">
+  <div class="hero-badge"><span class="dot"></span> CHAPTER 6</div>
+  <h1 class="hero-title">AI 팀을 지휘하라</h1>
+  <p class="hero-quote">하나의 AI에게 질문하던 시대는 끝났다.<br>여러 AI 에이전트로 구성된 팀을 설계하고 조율하는<br><strong style="color:var(--c-gold)">하네스 엔지니어링</strong>이 핵심 역량이다.</p>
+  <div class="conductor-visual">
+    <div class="baton"></div>
+    <span class="music-note">&#9835;</span>
+    <span class="music-note">&#9833;</span>
+    <span class="music-note">&#9839;</span>
+    <span class="music-note">&#9834;</span>
+    <span class="music-note">&#9835;</span>
+  </div>
+  <div class="scroll-indicator">
+    <span>SCROLL</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- ==================== 6.1 ==================== -->
+<section class="section" id="sec-6-1">
+<div class="container">
+  <div class="section-badge"><span class="dot"></span> 6.1</div>
+  <h2 class="section-title">프롬프트에서 하네스로:<br>AI 활용의 세 번째 물결</h2>
+  <p class="section-desc">AI를 활용하는 방식은 3년 만에 세 번의 패러다임 전환을 겪었습니다. 당신이 영화감독이라고 가정합시다. 아무리 뛰어난 배우 한 명이 있어도, 대본도 없고 조명도 없고 촬영 순서도 정해지지 않았다면 좋은 영화를 만들 수 있을까요? 감독의 진짜 능력은 연기를 직접 하는 것이 아니라 -- 배우에게 역할을 부여하고, 스태프를 배치하고, 촬영 순서를 설계하고, 최종 편집까지 전체 과정을 지휘하는 데 있습니다.</p>
+
+  <h3 class="sub-heading">세 시대의 진화</h3>
+
+  <!-- EVOLUTION DIAGRAM -->
+  <div class="evo-container">
+    <div class="evo-stage" onclick="toggleEvo(this, 0)">
+      <span class="evo-icon">&#128172;</span>
+      <div class="evo-year">2023</div>
+      <div class="evo-name">프롬프트 엔지니어링</div>
+      <div class="evo-metaphor">손님이 셰프에게 주문을 잘 하는 기술</div>
+      <div class="evo-detail">단일 AI에게 좋은 질문을 던져 좋은 답변을 얻는다</div>
+    </div>
+    <div class="evo-arrow">&#10132;</div>
+    <div class="evo-stage" onclick="toggleEvo(this, 1)">
+      <span class="evo-icon">&#129302;</span>
+      <div class="evo-year">2024~2025</div>
+      <div class="evo-name">에이전트 엔지니어링</div>
+      <div class="evo-metaphor">셰프에게 주방 도구와 재료를 맡기는 기술</div>
+      <div class="evo-detail">AI에게 도구와 권한을 주어 복잡한 작업을 자율 수행하게 한다</div>
+    </div>
+    <div class="evo-arrow">&#10132;</div>
+    <div class="evo-stage" onclick="toggleEvo(this, 2)">
+      <span class="evo-icon">&#127932;</span>
+      <div class="evo-year">2025~2026</div>
+      <div class="evo-name">하네스 엔지니어링</div>
+      <div class="evo-metaphor">여러 셰프로 구성된 주방 전체를 설계하는 기술</div>
+      <div class="evo-detail">여러 에이전트가 협업하는 시스템(하네스)을 설계하여 대규모 작업을 수행한다</div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">하네스 엔지니어링이란?</h3>
+  <p class="sub-desc"><strong>하네스 엔지니어링(Harness Engineering)</strong>은 AI 에이전트를 감싸는 전체 환경 -- 제약 조건, 도구 접근 권한, 피드백 루프, 에이전트 간 협업 구조 -- 을 설계하는 엔지니어링 분야입니다. 2026년 2월, OpenAI는 Codex 팀이 <strong>100만 줄 이상의 프로덕션 애플리케이션을 인간이 단 한 줄의 코드도 직접 작성하지 않고</strong> 구축한 사례를 공개하면서, "하네스 엔지니어링"이라는 용어를 공식적으로 사용했습니다.</p>
+
+  <div class="quote-box">
+    "The agent is responsible for the 'what' and the 'why.' The harness handles the 'how' and the 'where.'"<br>
+    <em>(에이전트는 '무엇을'과 '왜'를 담당하고, 하네스는 '어떻게'와 '어디서'를 처리한다.)</em>
+    <div class="quote-src">-- OpenAI, "Harness Engineering: Leveraging Codex in an Agent-First World"</div>
+  </div>
+
+  <p class="sub-desc">Anthropic 역시 "Effective Harnesses for Long-Running Agents" 블로그를 통해 장시간 실행되는 에이전트를 위한 하네스 설계 원칙을 발표했습니다.</p>
+
+  <h3 class="sub-heading">왜 지금 하네스가 필요한가?</h3>
+  <p class="sub-desc">네 가지 변화가 동시에 일어나면서, "좋은 질문 하나"로는 더 이상 충분하지 않게 되었습니다.</p>
+
+  <table class="data-table">
+    <thead><tr><th>변화</th><th>이전</th><th>현재</th><th>결과</th></tr></thead>
+    <tbody>
+      <tr><td>모델 능력</td><td>간단한 Q&A</td><td>복잡한 코딩, 분석, 의사결정</td><td>더 큰 작업 위임 가능</td></tr>
+      <tr><td>작업 복잡도</td><td>단일 질문</td><td>수시간~수일 걸리는 프로젝트</td><td>단일 에이전트로 불충분</td></tr>
+      <tr><td>도구 통합</td><td>텍스트만</td><td>파일시스템, Git, API, DB</td><td>에이전트 행동 범위 확대</td></tr>
+      <tr><td>품질 요구</td><td>"괜찮은 답변"</td><td>프로덕션 수준 코드</td><td>검증 시스템 필요</td></tr>
+    </tbody>
+  </table>
+
+  <p class="sub-desc">주목할 숫자가 하나 있습니다.</p>
+
+  <div class="bench-stat">
+    <div class="bench-box">
+      <div class="bench-val" style="color:var(--text-secondary)">52.8%</div>
+      <div class="bench-label">하네스 개선 전</div>
+    </div>
+    <div class="bench-arrow">&#10132;</div>
+    <div class="bench-box">
+      <div class="bench-val" style="color:var(--c-gold)">66.5%</div>
+      <div class="bench-label">하네스 개선 후</div>
+    </div>
+  </div>
+  <p class="bench-note">LangChain 코딩 에이전트, Terminal Bench 2.0 -- 모델 변경 없이 하네스만 개선하여 <strong style="color:var(--c-pink)">+26% 성능 향상</strong></p>
+
+</div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ==================== 6.2 ==================== -->
+<section class="section" id="sec-6-2">
+<div class="container">
+  <div class="section-badge"><span class="dot"></span> 6.2</div>
+  <h2 class="section-title">하네스의 구조:<br>오케스트라를 만드는 세 가지 요소</h2>
+  <p class="section-desc">오케스트라를 떠올려보세요. 바이올리니스트, 첼리스트, 플루티스트가 각자 악보를 보며 연주하고, 지휘자가 전체를 조율합니다. 하네스의 구조도 이와 똑같이 세 가지 요소로 이루어져 있습니다.</p>
+
+  <!-- HARNESS STRUCTURE INTERACTIVE DIAGRAM -->
+  <div class="harness-diagram">
+    <div class="harness-orch" onclick="showHarnessDetail('orch')">
+      <h3>&#127932; 오케스트레이터 (Orchestrator)</h3>
+      <p>작업 분배 &middot; 진행 관리 &middot; 결과 통합 -- 지휘자</p>
+    </div>
+    <div class="harness-conn">
+      <div class="conn-line"></div>
+      <div class="conn-line"></div>
+      <div class="conn-line"></div>
+      <div class="conn-line"></div>
+    </div>
+    <div class="harness-agents">
+      <div class="h-agent-card" onclick="showHarnessDetail('agent')">
+        <span class="agent-icon">&#129302;</span>
+        <div class="agent-name">에이전트 A</div>
+        <div class="agent-role">역할 + 스킬 + 도구</div>
+      </div>
+      <div class="h-agent-card" onclick="showHarnessDetail('agent')">
+        <span class="agent-icon">&#128209;</span>
+        <div class="agent-name">에이전트 B</div>
+        <div class="agent-role">역할 + 스킬 + 도구</div>
+      </div>
+      <div class="h-agent-card" onclick="showHarnessDetail('skill')">
+        <span class="agent-icon">&#128736;</span>
+        <div class="agent-name">에이전트 C</div>
+        <div class="agent-role">역할 + 스킬 + 도구</div>
+      </div>
+      <div class="h-agent-card" onclick="showHarnessDetail('agent')">
+        <span class="agent-icon">&#128300;</span>
+        <div class="agent-name">에이전트 D</div>
+        <div class="agent-role">역할 + 스킬 + 도구</div>
+      </div>
+    </div>
+
+    <div class="harness-detail" id="detail-orch">
+      <h4>&#127932; 오케스트레이션 (Orchestration)</h4>
+      <p style="font-size:14px;color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">
+        여러 에이전트가 <strong>어떤 순서와 방식으로 협업하는지</strong>를 정의합니다. 교향곡의 악장이 정해져 있듯이, 에이전트들의 실행 순서와 데이터 흐름을 설계하는 것입니다.
+      </p>
+      <table>
+        <tr><td>역할</td><td>누가 언제 무엇을 연주(실행)할지 조율</td></tr>
+        <tr><td>방식</td><td>파이프라인, 팬아웃/팬인, 전문가풀, 생성-검증, 계층적 위임</td></tr>
+        <tr><td>비유</td><td>교향곡의 지휘자</td></tr>
+      </table>
+    </div>
+
+    <div class="harness-detail" id="detail-agent">
+      <h4>&#129302; 에이전트 (Agent)</h4>
+      <p style="font-size:14px;color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">
+        특정 역할을 수행하는 AI 단위입니다. 팀원 한 명을 채용할 때 직무기술서(JD)를 쓰듯이, 에이전트도 세 가지로 정의합니다.
+      </p>
+      <table>
+        <tr><td>역할</td><td>에이전트의 전문 분야와 페르소나 (예: "프론트엔드 개발 전문가")</td></tr>
+        <tr><td>도구</td><td>파일 읽기/쓰기, Git, 웹 검색, API 호출</td></tr>
+        <tr><td>권한</td><td>"src/ 디렉토리만 수정 가능", "main 브랜치 push 불가"</td></tr>
+      </table>
+    </div>
+
+    <div class="harness-detail" id="detail-skill">
+      <h4>&#128209; 스킬 (Skill)</h4>
+      <p style="font-size:14px;color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">
+        에이전트가 특정 작업을 수행할 때 따라야 하는 <strong>작업 절차와 출력 규칙</strong>입니다. 누군가에게 "알아서 해"라고 하면 결과가 들쭉날쭉하듯이, 에이전트에게도 명확한 절차서가 필요합니다.
+      </p>
+      <table>
+        <tr><td>워크플로우</td><td>"1. 조사 -> 2. 분석 -> 3. 작성 -> 4. 검토"</td></tr>
+        <tr><td>입력 규칙</td><td>대상 독자, 주제, 분량, 형식</td></tr>
+        <tr><td>출력 규칙</td><td>마크다운 형식, 출처 명시, 7000자 이상</td></tr>
+        <tr><td>제약 조건</td><td>추측 금지, 검증되지 않은 정보 사용 금지</td></tr>
+      </table>
+    </div>
+  </div>
+  <p class="sub-desc" style="text-align:center;color:rgba(255,255,255,0.4);font-size:13px;">각 요소를 클릭하면 상세 설명이 표시됩니다</p>
+
+</div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ==================== 6.3 ==================== -->
+<section class="section" id="sec-6-3">
+<div class="container">
+  <div class="section-badge"><span class="dot"></span> 6.3</div>
+  <h2 class="section-title">에이전트 디자인 패턴:<br>다섯 가지 진형</h2>
+  <p class="section-desc">전쟁에서 장군이 병력을 배치하는 진형이 있듯이, 에이전트 시스템에도 검증된 디자인 패턴이 있습니다. 상황에 따라 적절한 패턴을 선택하는 것이 하네스 엔지니어의 핵심 역량입니다.</p>
+
+  <div class="pattern-tabs">
+    <div class="pattern-tab active" onclick="showPattern(0)">&#128218; 파이프라인</div>
+    <div class="pattern-tab" onclick="showPattern(1)">&#128290; 팬아웃/팬인</div>
+    <div class="pattern-tab" onclick="showPattern(2)">&#128105;&#8205;&#9879;&#65039; 전문가 풀</div>
+    <div class="pattern-tab" onclick="showPattern(3)">&#9989; 생성-검증</div>
+    <div class="pattern-tab" onclick="showPattern(4)">&#127970; 계층적 위임</div>
+  </div>
+
+  <!-- Pattern 0: Pipeline -->
+  <div class="pattern-panel active" id="pattern-0">
+    <h3>패턴 1: 파이프라인 (Pipeline)</h3>
+    <div class="pattern-fit">적합한 상황: 순서가 명확한 작업 (문서 번역 -> 교정 -> 포맷팅)</div>
+    <div class="pattern-desc">에이전트들이 <strong>순차적으로</strong> 작업을 전달합니다. 공장의 컨베이어 벨트처럼, 앞 단계의 출력이 다음 단계의 입력이 됩니다.</div>
+    <div class="pattern-diagram"><span class="highlight">[기획 에이전트]</span> <span class="arrow">---></span> <span class="highlight">[개발 에이전트]</span> <span class="arrow">---></span> <span class="highlight">[테스트 에이전트]</span> <span class="arrow">---></span> <span class="gold">[배포 에이전트]</span>
+  <span class="arrow">  요구사항 정의       코드 구현          테스트 실행         배포 완료</span></div>
+  </div>
+
+  <!-- Pattern 1: Fan-out/Fan-in -->
+  <div class="pattern-panel" id="pattern-1">
+    <h3>패턴 2: 팬아웃/팬인 (Fan-out/Fan-in)</h3>
+    <div class="pattern-fit">적합한 상황: 독립적인 작업을 동시에 수행 (여러 챕터를 동시 집필)</div>
+    <div class="pattern-desc">여러 에이전트가 <strong>병렬로</strong> 작업을 수행한 뒤, 결과를 <strong>하나로 통합</strong>합니다. 신문사에서 여러 기자가 동시에 각자의 섹션을 취재하고, 편집장이 최종본을 엮는 것과 같습니다.</div>
+    <div class="pattern-diagram">                <span class="arrow">┌──</span> <span class="highlight">[리서처 A]</span> <span class="arrow">── 결과A ──┐</span>
+<span class="gold">[오케스트레이터]</span> <span class="arrow">─┼──</span> <span class="highlight">[리서처 B]</span> <span class="arrow">── 결과B ──┼──</span> <span class="gold">[통합 에이전트]</span> <span class="arrow">→ 최종 결과</span>
+                <span class="arrow">└──</span> <span class="highlight">[리서처 C]</span> <span class="arrow">── 결과C ──┘</span></div>
+  </div>
+
+  <!-- Pattern 2: Expert Pool -->
+  <div class="pattern-panel" id="pattern-2">
+    <h3>패턴 3: 전문가 풀 (Expert Pool)</h3>
+    <div class="pattern-fit">적합한 상황: 다양한 전문 분야의 질문이 들어오는 환경</div>
+    <div class="pattern-desc">요청의 성격에 따라 <strong>적합한 전문가 에이전트를 선택</strong>합니다. 종합병원의 접수처에서 증상에 따라 해당 전문의에게 배정하는 것과 같습니다.</div>
+    <div class="pattern-diagram">                    <span class="arrow">┌──</span> <span class="highlight">[프론트엔드 전문가]</span>
+<span class="gold">[라우터 에이전트]</span> <span class="arrow">───┼──</span> <span class="highlight">[백엔드 전문가]</span>
+                    <span class="arrow">├──</span> <span class="highlight">[DB 전문가]</span>
+                    <span class="arrow">└──</span> <span class="highlight">[보안 전문가]</span></div>
+  </div>
+
+  <!-- Pattern 3: Generator-Verifier -->
+  <div class="pattern-panel" id="pattern-3">
+    <h3>패턴 4: 생성-검증 (Generator-Verifier)</h3>
+    <div class="pattern-fit">적합한 상황: 높은 품질이 요구되는 작업 (코드 생성 -> 코드 리뷰)</div>
+    <div class="pattern-desc">한 에이전트가 결과물을 <strong>생성</strong>하고, 다른 에이전트가 <strong>검증</strong>합니다. 작가와 편집자의 관계처럼, 불합격 시 피드백과 함께 재작성을 요청합니다.</div>
+    <div class="pattern-diagram"><span class="highlight">[생성 에이전트]</span> <span class="arrow">→</span> <span class="gold">[검증 에이전트]</span> <span class="arrow">→ 합격? →</span> <span class="gold">완료</span>
+                      <span class="arrow">↓ 불합격</span>
+               <span class="highlight">피드백과 함께 재생성 요청</span>
+                      <span class="arrow">↓</span>
+              <span class="highlight">[생성 에이전트]</span> <span class="arrow">(재시도)</span></div>
+  </div>
+
+  <!-- Pattern 4: Hierarchical -->
+  <div class="pattern-panel" id="pattern-4">
+    <h3>패턴 5: 계층적 위임 (Hierarchical Delegation)</h3>
+    <div class="pattern-fit">적합한 상황: 대규모 프로젝트 (전사 시스템 마이그레이션)</div>
+    <div class="pattern-desc">상위 에이전트가 작업을 분해하여 <strong>하위 에이전트들에게 위임</strong>합니다. 대기업의 조직도처럼, 총괄이 팀장에게, 팀장이 팀원에게 작업을 나누어줍니다.</div>
+    <div class="pattern-diagram">              <span class="gold">[총괄 에이전트]</span>
+             <span class="arrow">╱       │       ╲</span>
+     <span class="highlight">[팀장 A]</span>     <span class="highlight">[팀장 B]</span>     <span class="highlight">[팀장 C]</span>
+      <span class="arrow">╱    ╲       ╱    ╲       ╱    ╲</span>
+  <span class="arrow">[팀원] [팀원] [팀원] [팀원] [팀원] [팀원]</span></div>
+  </div>
+
+  <!-- Pattern Compare -->
+  <h3 class="sub-heading">패턴 비교 요약</h3>
+  <table class="data-table pattern-compare">
+    <thead><tr><th>패턴</th><th>구조</th><th>병렬성</th><th>복잡도</th><th>대표 사례</th></tr></thead>
+    <tbody>
+      <tr><td style="font-weight:700;color:var(--c-pink)">파이프라인</td><td>A -> B -> C</td><td>없음</td><td>낮음</td><td>CI/CD 파이프라인</td></tr>
+      <tr><td style="font-weight:700;color:var(--c-pink)">팬아웃/팬인</td><td>병렬 실행 -> 통합</td><td>높음</td><td>중간</td><td>동시 리서치</td></tr>
+      <tr><td style="font-weight:700;color:var(--c-pink)">전문가 풀</td><td>라우팅 기반 선택</td><td>가변</td><td>중간</td><td>고객 지원 챗봇</td></tr>
+      <tr><td style="font-weight:700;color:var(--c-pink)">생성-검증</td><td>생성 <-> 검증 루프</td><td>없음</td><td>중간</td><td>코드 리뷰</td></tr>
+      <tr><td style="font-weight:700;color:var(--c-pink)">계층적 위임</td><td>트리 구조 위임</td><td>높음</td><td>높음</td><td>대규모 프로젝트</td></tr>
+    </tbody>
+  </table>
+  <p class="sub-desc">실전에서는 이 패턴들을 <strong>조합</strong>해서 씁니다. 이 교육 자료 자체가 "팬아웃 -> 팬인 -> 생성-검증"을 결합한 사례입니다.</p>
+
+</div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ==================== 6.4 ==================== -->
+<section class="section" id="sec-6-4">
+<div class="container">
+  <div class="section-badge"><span class="dot"></span> 6.4</div>
+  <h2 class="section-title">실전 가이드:<br>Claude Code로 하네스 만들기</h2>
+  <p class="section-desc">이론은 충분합니다. 이제 직접 하네스를 만들어봅시다. Claude Code의 <code>.claude/</code> 디렉토리 구조를 활용한 실전 예제를 따라해보겠습니다.</p>
+
+  <h3 class="sub-heading">Step 1: 프로젝트 구조 설계</h3>
+  <p class="sub-desc">하네스의 뼈대는 디렉토리 구조에서 시작합니다. 각 폴더의 역할은 명확합니다. <code>agents/</code>에는 "누가" 일하는지, <code>skills/</code>에는 "어떻게" 일하는지, <code>CLAUDE.md</code>에는 프로젝트 전체의 규칙이 들어갑니다.</p>
+
+  <!-- INTERACTIVE FILE TREE -->
+  <div class="file-tree" id="fileTree">
+    <div class="tree-line tree-folder" onclick="toggleTreeFolder(this)">&#128193; 프로젝트/</div>
+    <div class="tree-folder-content">
+      <div class="tree-line tree-folder" onclick="toggleTreeFolder(this)" style="padding-left:24px">&#128193; .claude/</div>
+      <div class="tree-folder-content">
+        <div class="tree-line tree-folder" onclick="toggleTreeFolder(this)" style="padding-left:48px">&#128193; agents/ <span class="tree-comment">&larr; 에이전트 정의 파일들</span></div>
+        <div class="tree-folder-content">
+          <div class="tree-line tree-file" style="padding-left:72px">&#128196; researcher.md</div>
+          <div class="tree-line tree-file" style="padding-left:72px">&#128196; developer.md</div>
+          <div class="tree-line tree-file" style="padding-left:72px">&#128196; reviewer.md</div>
+          <div class="tree-line tree-file" style="padding-left:72px">&#128196; deployer.md</div>
+        </div>
+        <div class="tree-line tree-folder" onclick="toggleTreeFolder(this)" style="padding-left:48px">&#128193; skills/ <span class="tree-comment">&larr; 스킬 정의 파일들</span></div>
+        <div class="tree-folder-content">
+          <div class="tree-line tree-folder" onclick="toggleTreeFolder(this)" style="padding-left:72px">&#128193; web-research/</div>
+          <div class="tree-folder-content">
+            <div class="tree-line tree-file" style="padding-left:96px">&#128196; skill.md</div>
+          </div>
+          <div class="tree-line tree-folder" onclick="toggleTreeFolder(this)" style="padding-left:72px">&#128193; code-review/</div>
+          <div class="tree-folder-content">
+            <div class="tree-line tree-file" style="padding-left:96px">&#128196; skill.md</div>
+          </div>
+          <div class="tree-line tree-folder" onclick="toggleTreeFolder(this)" style="padding-left:72px">&#128193; content-formatter/</div>
+          <div class="tree-folder-content">
+            <div class="tree-line tree-file" style="padding-left:96px">&#128196; skill.md</div>
+          </div>
+        </div>
+        <div class="tree-line tree-file" style="padding-left:48px">&#128196; CLAUDE.md <span class="tree-comment">&larr; 프로젝트 전체 지시사항</span></div>
+      </div>
+      <div class="tree-line tree-folder" style="padding-left:24px;cursor:default">&#128193; src/</div>
+      <div class="tree-line" style="padding-left:24px;color:var(--text-secondary)">...</div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">Step 2: 에이전트 정의 작성</h3>
+  <p class="sub-desc">에이전트는 마크다운 파일로 정의합니다. 팀원에게 주는 역할 설명서라고 생각하면 됩니다. 핵심은 <strong>구체적인 역할과 제약</strong>을 명시하는 것입니다.</p>
+
+  <div class="code-block"><span class="cm">---</span>
+<span class="kw">name:</span> <span class="str">ai-historian</span>
+<span class="kw">description:</span> <span class="str">"AI 역사 및 타임라인 연구 전문가"</span>
+<span class="cm">---</span>
+
+<span class="kw"># AI Historian</span> -- AI 역사/타임라인 연구 전문가
+
+당신은 AI 산업의 역사와 변화 흐름을 추적하는 전문 연구원입니다.
+
+<span class="kw">## 핵심 역할</span>
+- ChatGPT 3.5 (2022.11) 이후 AI 산업의 주요 사건을 시간순으로 조사
+- 각 사건의 정확한 날짜, 출처, 영향력을 기록
+
+<span class="kw">## 작업 원칙</span>
+1. <span class="str">정확성 최우선</span>: 모든 날짜와 사실은 공식 발표 기반
+2. <span class="str">출처 필수</span>: 각 항목에 출처 URL 포함
+3. <span class="str">맥락 제공</span>: 왜 중요한지 1-2문장 설명 추가
+
+<span class="kw">## 도구 활용</span>
+- WebSearch: 최신 정보 검색
+- Write: 결과 파일 저장</div>
+
+  <h3 class="sub-heading">Step 3: 스킬 정의 작성</h3>
+  <p class="sub-desc">스킬은 에이전트가 수행하는 작업 절차를 정의합니다. 업무 매뉴얼이라고 생각하면 됩니다.</p>
+
+  <div class="code-block"><span class="cm">---</span>
+<span class="kw">name:</span> <span class="str">web-research</span>
+<span class="kw">description:</span> <span class="str">"웹 리서치 수행 스킬"</span>
+<span class="cm">---</span>
+
+<span class="kw"># Web Research Skill</span>
+
+<span class="kw">## 워크플로우</span>
+1. 핵심 키워드 도출 (3~5개)
+2. 각 키워드로 WebSearch 실행
+3. 결과에서 신뢰할 수 있는 출처 선별
+4. 핵심 정보 추출 및 정리
+5. 출처 목록 작성
+
+<span class="kw">## 출력 규칙</span>
+- 각 정보에 <span class="str">출처 URL 명시</span>
+- 날짜가 있는 정보는 <span class="str">날짜 필수 포함</span>
+- 상충되는 정보가 있으면 양쪽 모두 기록</div>
+
+  <h3 class="sub-heading">Step 4: 오케스트레이터 설계</h3>
+  <p class="sub-desc">오케스트레이터는 전체 워크플로우를 정의합니다. 프로젝트 관리자가 만드는 실행 계획서와 같습니다.</p>
+
+  <div class="code-block"><span class="kw"># AI Education Orchestrator</span>
+
+<span class="kw">## 실행 워크플로우</span>
+
+<span class="kw">### Phase 1: 병렬 리서치 (팬아웃)</span>
+4개 전문 에이전트를 <span class="str">동시에</span> 실행.
+각 에이전트에 전달할 컨텍스트:
+- 대상 독자: AI 입문자
+- 필수 포함: 정확한 정보, 출처 명시
+- 원리 설명: 어려운 개념은 쉽게 풀어쓰기
+
+<span class="kw">### Phase 2: 통합 편집 (팬인)</span>
+content-assembler가 4개 산출물을 통합.
+<span class="str">체크리스트:</span>
+- [ ] 챕터 간 용어 통일
+- [ ] 날짜/수치 일관성
+- [ ] 중복 내용 제거
+
+<span class="kw">### Phase 3: 검증 (생성-검증)</span>
+fact-checker가 최종 문서를 검증.</div>
+
+</div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ==================== 6.5 ==================== -->
+<section class="section" id="sec-6-5">
+<div class="container">
+  <div class="section-badge"><span class="dot"></span> 6.5</div>
+  <h2 class="section-title">실제 사례:<br>이 책이 만들어진 방법</h2>
+  <p class="section-desc">이론을 실제로 적용한 사례를 보는 것만큼 좋은 공부는 없습니다. 사실, <strong style="color:var(--c-gold)">지금 읽고 있는 이 교육 자료 자체가 하네스 엔지니어링으로 제작</strong>되었습니다.</p>
+
+  <h3 class="sub-heading">에이전트 팀 구성</h3>
+  <p class="sub-desc">6명의 전문 에이전트가 각자의 역할을 맡았습니다.</p>
+
+  <div class="harness-agents" style="margin:30px 0">
+    <div class="h-agent-card">
+      <span class="agent-icon">&#128218;</span>
+      <div class="agent-name">ai-historian</div>
+      <div class="agent-role">AI 역사 연구 전문가<br><small style="color:var(--c-gold)">01-timeline.md</small></div>
+    </div>
+    <div class="h-agent-card">
+      <span class="agent-icon">&#129504;</span>
+      <div class="agent-name">model-analyst</div>
+      <div class="agent-role">모델 진화 분석가<br><small style="color:var(--c-gold)">02-model-evolution.md</small></div>
+    </div>
+    <div class="h-agent-card">
+      <span class="agent-icon">&#128200;</span>
+      <div class="agent-name">trend-researcher</div>
+      <div class="agent-role">트렌드 리서처<br><small style="color:var(--c-gold)">03-trends-and-services.md</small></div>
+    </div>
+    <div class="h-agent-card">
+      <span class="agent-icon">&#128187;</span>
+      <div class="agent-name">devpractice-expert</div>
+      <div class="agent-role">개발 방법론 전문가<br><small style="color:var(--c-gold)">04-vibe-coding-and-harness.md</small></div>
+    </div>
+    <div class="h-agent-card">
+      <span class="agent-icon">&#9999;&#65039;</span>
+      <div class="agent-name">content-assembler</div>
+      <div class="agent-role">콘텐츠 통합 편집자<br><small style="color:var(--c-gold)">AI-Education-Complete.md</small></div>
+    </div>
+    <div class="h-agent-card">
+      <span class="agent-icon">&#128269;</span>
+      <div class="agent-name">fact-checker</div>
+      <div class="agent-role">팩트체커<br><small style="color:var(--c-gold)">fact-check-report.md</small></div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">오케스트레이션: 세 패턴의 조합</h3>
+  <p class="sub-desc">이 프로젝트는 팬아웃, 팬인, 생성-검증 세 가지 패턴을 조합하여 사용했습니다. 각 Phase를 클릭해 상세 흐름을 확인하세요.</p>
+
+  <div class="workflow-phases">
+    <div class="wf-phase" onclick="togglePhase(this)">
+      <div class="wf-phase-header">
+        <span class="wf-phase-num">Phase 1</span>
+        <span class="wf-phase-title">병렬 리서치</span>
+        <span class="wf-phase-pattern">팬아웃</span>
+      </div>
+      <div class="wf-phase-body">
+        <p>4개 전문 에이전트가 <strong>동시에</strong> 각자의 챕터를 집필합니다. 한 사람이 순차적으로 네 챕터를 쓰면 4배의 시간이 걸리지만, 병렬 실행으로 시간을 1/4로 단축했습니다.</p>
+        <div class="wf-phase-flow">&#9500;&#9472;&#9472; ai-historian &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#10132; 01-timeline.md
+&#9500;&#9472;&#9472; model-analyst &#9472;&#9472;&#9472;&#9472;&#9472;&#10132; 02-model-evolution.md
+&#9500;&#9472;&#9472; trend-researcher &#9472;&#9472;&#9472;&#10132; 03-trends-and-services.md
+&#9492;&#9472;&#9472; devpractice-expert &#9472;&#10132; 04-vibe-coding-and-harness.md</div>
+      </div>
+    </div>
+
+    <div class="wf-phase" onclick="togglePhase(this)">
+      <div class="wf-phase-header">
+        <span class="wf-phase-num">Phase 2</span>
+        <span class="wf-phase-title">통합 편집</span>
+        <span class="wf-phase-pattern">팬인</span>
+      </div>
+      <div class="wf-phase-body">
+        <p>content-assembler가 4개 산출물을 하나로 통합합니다. 용어 통일, 날짜/수치 일관성, 중복 내용 제거를 체크합니다.</p>
+        <div class="wf-phase-flow">01 + 02 + 03 + 04 &#9472;&#9472;&#10132; content-assembler &#9472;&#9472;&#10132; AI-Education-Complete.md</div>
+      </div>
+    </div>
+
+    <div class="wf-phase" onclick="togglePhase(this)">
+      <div class="wf-phase-header">
+        <span class="wf-phase-num">Phase 3</span>
+        <span class="wf-phase-title">품질 검증</span>
+        <span class="wf-phase-pattern">생성-검증</span>
+      </div>
+      <div class="wf-phase-body">
+        <p>별도의 fact-checker가 전체 문서를 검증합니다. 각 에이전트가 생성한 정보의 정확성을 이중으로 확인했습니다.</p>
+        <div class="wf-phase-flow">AI-Education-Complete.md &#9472;&#9472;&#10132; fact-checker &#9472;&#9472;&#10132; 검증 보고서
+                                                    &#9492;&#9472;&#10132; 수정 반영</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ==================== 6.6 ==================== -->
+<section class="section" id="sec-6-6">
+<div class="container">
+  <div class="section-badge"><span class="dot"></span> 6.6</div>
+  <h2 class="section-title">에이전트 생태계와 도구들</h2>
+  <p class="section-desc">2026년 현재, 에이전트 시스템을 구축하기 위한 다양한 프레임워크가 경쟁하고 있습니다.</p>
+
+  <h3 class="sub-heading">주요 에이전트 프레임워크 비교</h3>
+
+  <div class="fw-grid">
+    <div class="fw-card">
+      <div class="fw-name">LangChain / LangGraph</div>
+      <div class="fw-maker">LangChain Inc.</div>
+      <div class="fw-feat">그래프 기반 워크플로우, 강력한 상태 관리</div>
+      <div class="fw-use">복잡한 상태 관리가 필요한 프로덕션 에이전트</div>
+    </div>
+    <div class="fw-card">
+      <div class="fw-name">CrewAI</div>
+      <div class="fw-maker">CrewAI</div>
+      <div class="fw-feat">역할 기반 에이전트 팀, 직관적 API</div>
+      <div class="fw-use">팀 기반 워크플로우 자동화, 빠른 프로토타이핑</div>
+    </div>
+    <div class="fw-card">
+      <div class="fw-name">AutoGen</div>
+      <div class="fw-maker">Microsoft</div>
+      <div class="fw-feat">대화형 멀티 에이전트, 그룹 토론</div>
+      <div class="fw-use">그룹 의사결정, 비기술자 혼합 팀</div>
+    </div>
+    <div class="fw-card">
+      <div class="fw-name">Claude Agent SDK</div>
+      <div class="fw-maker">Anthropic</div>
+      <div class="fw-feat">Claude 모델 최적화, MCP 통합</div>
+      <div class="fw-use">Claude 기반 장시간 에이전트</div>
+    </div>
+    <div class="fw-card">
+      <div class="fw-name">OpenAI Agents SDK</div>
+      <div class="fw-maker">OpenAI</div>
+      <div class="fw-feat">Codex 통합, 하네스 엔지니어링 지원</div>
+      <div class="fw-use">OpenAI 생태계 기반 개발</div>
+    </div>
+  </div>
+
+  <div class="quote-box">
+    <strong>프레임워크 선택 팁</strong>: CrewAI는 312줄, 4시간이면 배포까지 가능한 반면, LangGraph는 더 복잡하지만 프로덕션 환경에서 정밀한 제어가 가능합니다. 이 둘은 경쟁 관계가 아니라 조합이 가능합니다 -- LangChain으로 도구 관리를 하면서 CrewAI로 멀티 에이전트 오케스트레이션을 하는 식입니다.
+  </div>
+
+  <h3 class="sub-heading">MCP: AI 세계의 USB-C</h3>
+  <p class="sub-desc">에이전트가 외부 도구와 소통하려면 표준 인터페이스가 필요합니다. 그것이 바로 <strong>MCP(Model Context Protocol)</strong>입니다. USB-C처럼 <strong>하나의 표준 커넥터</strong>를 제공합니다.</p>
+
+  <div class="mcp-visual">
+    <div class="mcp-box">
+      <span class="mcp-icon">&#129302;</span>
+      <div class="mcp-label">AI 모델</div>
+      <div class="mcp-sub">Claude, GPT 등</div>
+    </div>
+    <div class="mcp-connector">
+      <div class="mcp-arrows">&larr;</div>
+      <div class="mcp-proto">MCP</div>
+      <div class="mcp-arrows">&rarr;</div>
+    </div>
+    <div class="mcp-box">
+      <span class="mcp-icon">&#128295;</span>
+      <div class="mcp-label">외부 도구</div>
+      <div class="mcp-sub">GitHub, DB, Slack 등</div>
+    </div>
+  </div>
+
+  <h4 style="font-size:16px;font-weight:700;margin:30px 0 16px;color:var(--c-gold)">MCP 주요 발전 타임라인</h4>
+
+  <div class="mcp-timeline">
+    <div class="mcp-event">
+      <div class="mcp-date">2024.11</div>
+      <div class="mcp-title">Anthropic, MCP 발표</div>
+      <div class="mcp-meaning">AI-도구 연결의 표준 프로토콜 제안</div>
+    </div>
+    <div class="mcp-event">
+      <div class="mcp-date">2025.11</div>
+      <div class="mcp-title">MCP 사양 대규모 업데이트</div>
+      <div class="mcp-meaning">비동기 연산, 무상태 모드, 서버 ID, 공식 확장 기능 추가</div>
+    </div>
+    <div class="mcp-event">
+      <div class="mcp-date">2025.12</div>
+      <div class="mcp-title">Agentic AI Foundation(AAIF) 설립</div>
+      <div class="mcp-meaning">Anthropic이 MCP를 Linux Foundation 산하 재단에 기증. OpenAI, Block과 공동 설립</div>
+    </div>
+    <div class="mcp-event">
+      <div class="mcp-date">2026 현재</div>
+      <div class="mcp-title">업계 표준으로 자리매김</div>
+      <div class="mcp-meaning">OpenAI, Google DeepMind, Microsoft 등 모두 채택. 75개 이상 공식 커넥터 운영</div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">엔터프라이즈 에이전트 시스템 동향</h3>
+  <p class="sub-desc">대형 기술 기업들도 앞다투어 에이전트 플랫폼을 출시하고 있습니다.</p>
+
+  <div class="enterprise-list">
+    <div class="enterprise-item">
+      <div class="ent-name">Salesforce Agentforce</div>
+      <div class="ent-desc">CRM 데이터와 연결된 고객 서비스 에이전트 플랫폼</div>
+    </div>
+    <div class="enterprise-item">
+      <div class="ent-name">Microsoft Copilot Studio</div>
+      <div class="ent-desc">기업용 커스텀 에이전트 빌더</div>
+    </div>
+    <div class="enterprise-item">
+      <div class="ent-name">Google Vertex AI Agent Builder</div>
+      <div class="ent-desc">기업 데이터 기반 에이전트 구축 도구</div>
+    </div>
+    <div class="enterprise-item">
+      <div class="ent-name">OpenAI Codex</div>
+      <div class="ent-desc">대규모 소프트웨어 개발 에이전트</div>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ==================== 6.7 ==================== -->
+<section class="section" id="sec-6-7">
+<div class="container">
+  <div class="section-badge"><span class="dot"></span> 6.7</div>
+  <h2 class="section-title">미래: 하네스 엔지니어라는<br>새로운 커리어</h2>
+  <p class="section-desc">2026년, <strong style="color:var(--c-gold)">하네스 엔지니어(Harness Engineer)</strong>라는 새로운 직무가 등장하고 있습니다. 코드를 직접 작성하던 개발자가 AI 팀의 감독으로 역할을 전환하는 것입니다.</p>
+
+  <h3 class="sub-heading">역할의 전환</h3>
+
+  <div class="role-grid">
+    <div class="role-col">
+      <div class="role-item" style="border-color:rgba(255,255,255,0.12)">&#128187; 코드를 직접 작성</div>
+      <div class="role-item" style="border-color:rgba(255,255,255,0.12)">&#128027; 버그를 직접 수정</div>
+      <div class="role-item" style="border-color:rgba(255,255,255,0.12)">&#128221; 테스트를 직접 실행</div>
+      <div class="role-item" style="border-color:rgba(255,255,255,0.12)">&#128196; 문서를 직접 작성</div>
+    </div>
+    <div class="role-arrow-col">
+      <span>&#10132;</span><span>&#10132;</span><span>&#10132;</span><span>&#10132;</span>
+    </div>
+    <div class="role-col">
+      <div class="role-item" style="border-color:rgba(255,107,157,0.3)">&#127932; 에이전트가 작업할 환경을 설계</div>
+      <div class="role-item" style="border-color:rgba(255,107,157,0.3)">&#128260; 피드백 루프 구축으로 자동 수정</div>
+      <div class="role-item" style="border-color:rgba(255,107,157,0.3)">&#9989; 자동 검증 파이프라인 설계</div>
+      <div class="role-item" style="border-color:rgba(255,107,157,0.3)">&#129302; 문서 생성 워크플로우 설계</div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">하네스 엔지니어에게 필요한 다섯 가지 역량</h3>
+  <p class="sub-desc">가장 중요한 것은 "코딩 실력"이 아니라 <strong>"설계와 조율 능력"</strong>입니다. 코드를 10년간 짠 시니어 개발자와 같은 출발선에서 시작할 수 있는 새로운 분야입니다.</p>
+
+  <div class="skills-list">
+    <div class="skill-item">
+      <div class="skill-num">1</div>
+      <div class="skill-content">
+        <h4>시스템 설계 능력</h4>
+        <p>에이전트 간 협업 구조를 설계하는 아키텍처 능력</p>
+      </div>
+    </div>
+    <div class="skill-item">
+      <div class="skill-num">2</div>
+      <div class="skill-content">
+        <h4>프롬프트 엔지니어링</h4>
+        <p>에이전트의 역할과 제약을 명확히 정의하는 능력</p>
+      </div>
+    </div>
+    <div class="skill-item">
+      <div class="skill-num">3</div>
+      <div class="skill-content">
+        <h4>품질 관리 마인드</h4>
+        <p>생성-검증 루프, CI/CD 파이프라인 설계</p>
+      </div>
+    </div>
+    <div class="skill-item">
+      <div class="skill-num">4</div>
+      <div class="skill-content">
+        <h4>도메인 지식</h4>
+        <p>에이전트가 작업할 분야에 대한 깊은 이해</p>
+      </div>
+    </div>
+    <div class="skill-item">
+      <div class="skill-num">5</div>
+      <div class="skill-content">
+        <h4>디버깅 사고력</h4>
+        <p>에이전트가 실패했을 때 하네스의 어떤 부분이 문제인지 파악</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="quote-box">
+    "인간의 역할은 코드를 작성하는 것이 아니라, <strong style="color:var(--c-gold)">환경을 설계하고, 의도를 명시하고, 피드백 루프를 구축하는 것</strong>이다."
+    <div class="quote-src">-- OpenAI Codex 팀, Harness Engineering</div>
+  </div>
+
+</div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ==================== 6.8 ==================== -->
+<section class="section" id="sec-6-8">
+<div class="container">
+  <div class="section-badge"><span class="dot"></span> 6.8</div>
+  <h2 class="section-title">핵심 정리</h2>
+
+  <table class="summary-table">
+    <thead><tr><th>개념</th><th>핵심 정의</th><th>기억할 키워드</th></tr></thead>
+    <tbody>
+      <tr><td class="concept">하네스 엔지니어링</td><td>AI 에이전트 팀을 감싸는 환경을 설계하는 기술</td><td class="keyword">에이전트, 스킬, 오케스트레이션, 피드백 루프</td></tr>
+      <tr><td class="concept">에이전트</td><td>특정 역할을 수행하는 AI 단위 (역할 + 도구 + 권한)</td><td class="keyword">팀원</td></tr>
+      <tr><td class="concept">스킬</td><td>에이전트의 작업 절차와 출력 규칙</td><td class="keyword">업무 매뉴얼</td></tr>
+      <tr><td class="concept">오케스트레이션</td><td>에이전트 간 협업 순서와 방식</td><td class="keyword">지휘</td></tr>
+      <tr><td class="concept">MCP</td><td>AI와 외부 도구를 연결하는 표준 프로토콜</td><td class="keyword">USB-C</td></tr>
+      <tr><td class="concept">하네스 엔지니어</td><td>에이전트 팀의 환경과 워크플로우를 설계하는 직무</td><td class="keyword">AI 감독</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub-heading">이 챕터에서 가져갈 세 가지 인사이트</h3>
+
+  <div class="takeaway-cards">
+    <div class="takeaway-card">
+      <div class="takeaway-num">1</div>
+      <div class="takeaway-text">
+        <h3>하네스가 모델보다 중요하다</h3>
+        <p>같은 모델이라도 하네스 설계에 따라 성능이 52.8%에서 66.5%로 뛸 수 있습니다.</p>
+      </div>
+    </div>
+    <div class="takeaway-card">
+      <div class="takeaway-num">2</div>
+      <div class="takeaway-text">
+        <h3>패턴을 조합하라</h3>
+        <p>다섯 가지 디자인 패턴은 단독으로 쓰기보다 상황에 맞게 조합할 때 진가를 발휘합니다.</p>
+      </div>
+    </div>
+    <div class="takeaway-card">
+      <div class="takeaway-num">3</div>
+      <div class="takeaway-text">
+        <h3>코드보다 설계가 먼저다</h3>
+        <p>하네스 엔지니어의 핵심 역량은 코딩이 아니라 시스템 설계와 조율 능력입니다.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<!-- ==================== FOOTER / EPILOGUE ==================== -->
+<footer class="footer">
+  <div class="epilogue-title">AI 팀의 지휘자가 되어라</div>
+  <p class="epilogue-text">
+    프롬프트에서 시작된 여정이 에이전트를 거쳐 하네스에 도달했습니다.<br>
+    이제 당신은 AI 하나에게 질문하는 사람이 아니라,<br>
+    여러 AI로 구성된 팀을 설계하고 지휘하는 <strong style="color:var(--c-gold)">감독</strong>이 될 차례입니다.
+  </p>
+
+  <div class="nav-links">
+    <a href="ch5.html">&larr; Ch5로 돌아가기</a>
+    <a href="index.html">🏠 홈</a>
+  </div>
+
+  <div class="ref-section">
+    <h4>참고 자료</h4>
+    <a href="https://openai.com/index/harness-engineering/" target="_blank">OpenAI, "Harness Engineering: Leveraging Codex in an Agent-First World" (2026.02)</a>
+    <a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents" target="_blank">Anthropic, "Effective Harnesses for Long-Running Agents"</a>
+    <a href="https://www.anthropic.com/news/model-context-protocol" target="_blank">Anthropic, "Model Context Protocol" (2024.11)</a>
+    <a href="https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation" target="_blank">Anthropic, AAIF 설립 발표 (2025.12)</a>
+    <a href="https://aakashgupta.medium.com/2025-was-agents-2026-is-agent-harnesses-heres-why-that-changes-everything-073e9877655e" target="_blank">Aakash Gupta, "2025 Was Agents. 2026 Is Agent Harnesses."</a>
+    <a href="https://arsum.com/blog/posts/ai-agent-frameworks/" target="_blank">AI Agent Frameworks Compared 2026</a>
+    <a href="https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html" target="_blank">Martin Fowler, "Harness Engineering"</a>
+  </div>
+</footer>
+
+<script>
+// ===== PARTICLES =====
+(function(){
+  const c = document.getElementById('particles');
+  const ctx = c.getContext('2d');
+  let W, H, particles = [];
+  function resize(){ W = c.width = window.innerWidth; H = c.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  class P {
+    constructor(){this.reset();}
+    reset(){
+      this.x = Math.random()*W;
+      this.y = Math.random()*H;
+      this.r = Math.random()*1.8+0.3;
+      this.vx = (Math.random()-0.5)*0.3;
+      this.vy = (Math.random()-0.5)*0.3;
+      this.a = Math.random()*0.4+0.1;
+    }
+    update(){
+      this.x += this.vx; this.y += this.vy;
+      if(this.x<0||this.x>W) this.vx*=-1;
+      if(this.y<0||this.y>H) this.vy*=-1;
+    }
+    draw(){
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+      // mix pink and gold
+      const mix = this.y / H;
+      const r = Math.round(255);
+      const g = Math.round(107 + (215-107)*mix);
+      const b = Math.round(157 + (0-157)*mix);
+      ctx.fillStyle = `rgba(${r},${g},${b},${this.a})`;
+      ctx.fill();
+    }
+  }
+  for(let i=0;i<80;i++) particles.push(new P());
+  function loop(){
+    ctx.clearRect(0,0,W,H);
+    particles.forEach(p=>{p.update();p.draw();});
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+// ===== SMOOTH SCROLL =====
+function smoothScroll(id){
+  document.getElementById(id).scrollIntoView({behavior:'smooth'});
+}
+
+// ===== SIDE NAV ACTIVE STATE =====
+(function(){
+  const dots = document.querySelectorAll('#side-nav .nav-dot');
+  const lines = document.querySelectorAll('#side-nav .nav-line');
+  const sections = [];
+  dots.forEach(d => {
+    const t = d.getAttribute('data-target');
+    if(t) sections.push({el: document.getElementById(t), dot: d});
+  });
+  function update(){
+    const scrollY = window.scrollY + window.innerHeight * 0.35;
+    let activeIdx = 0;
+    sections.forEach((s,i) => {
+      if(s.el && s.el.offsetTop <= scrollY) activeIdx = i;
+    });
+    dots.forEach(d => d.classList.remove('active'));
+    lines.forEach(l => l.classList.remove('active'));
+    if(sections[activeIdx]) sections[activeIdx].dot.classList.add('active');
+    // activate lines up to active
+    for(let i=0; i<activeIdx && i<lines.length; i++) lines[i].classList.add('active');
+  }
+  window.addEventListener('scroll', update);
+  update();
+})();
+
+// ===== GSAP ANIMATIONS =====
+gsap.registerPlugin(ScrollTrigger);
+
+// Hero animations
+gsap.from('.hero-badge', {opacity:0, y:30, duration:1, delay:0.2});
+gsap.from('.hero-title', {opacity:0, y:40, duration:1.2, delay:0.4});
+gsap.from('.hero-quote', {opacity:0, y:30, duration:1, delay:0.7});
+gsap.from('.scroll-indicator', {opacity:0, duration:1, delay:1.2});
+
+// Section animations
+document.querySelectorAll('.section').forEach(sec => {
+  const badge = sec.querySelector('.section-badge');
+  const title = sec.querySelector('.section-title');
+  const desc = sec.querySelector('.section-desc');
+  if(badge) gsap.from(badge, {scrollTrigger:{trigger:sec, start:'top 80%'}, opacity:0, x:-30, duration:0.6});
+  if(title) gsap.from(title, {scrollTrigger:{trigger:sec, start:'top 80%'}, opacity:0, y:40, duration:0.8, delay:0.1});
+  if(desc) gsap.from(desc, {scrollTrigger:{trigger:sec, start:'top 75%'}, opacity:0, y:30, duration:0.8, delay:0.2});
+});
+
+// Evolution stages
+document.querySelectorAll('.evo-stage').forEach((s,i) => {
+  gsap.from(s, {
+    scrollTrigger:{trigger:s, start:'top 85%'},
+    opacity:0, y:50, duration:0.7, delay: i*0.15
+  });
+});
+
+// Cards stagger
+document.querySelectorAll('.fw-card, .h-agent-card, .enterprise-item, .skill-item, .takeaway-card, .wf-phase').forEach((el,i) => {
+  gsap.from(el, {
+    scrollTrigger:{trigger:el, start:'top 88%'},
+    opacity:0, y:30, duration:0.5, delay:(i%4)*0.08
+  });
+});
+
+// Tables
+document.querySelectorAll('.data-table tbody tr, .summary-table tbody tr').forEach((tr,i) => {
+  gsap.from(tr, {
+    scrollTrigger:{trigger:tr, start:'top 92%'},
+    opacity:0, x:-20, duration:0.4, delay:i*0.05
+  });
+});
+
+// Bench stat
+gsap.from('.bench-stat', {
+  scrollTrigger:{trigger:'.bench-stat', start:'top 85%'},
+  opacity:0, scale:0.9, duration:0.8
+});
+
+// MCP visual
+gsap.from('.mcp-visual', {
+  scrollTrigger:{trigger:'.mcp-visual', start:'top 85%'},
+  opacity:0, y:40, duration:0.8
+});
+
+// MCP timeline events
+document.querySelectorAll('.mcp-event').forEach((ev,i) => {
+  gsap.from(ev, {
+    scrollTrigger:{trigger:ev, start:'top 90%'},
+    opacity:0, x:-30, duration:0.5, delay:i*0.1
+  });
+});
+
+// Role grid
+gsap.from('.role-grid', {
+  scrollTrigger:{trigger:'.role-grid', start:'top 85%'},
+  opacity:0, y:40, duration:0.8
+});
+
+// Quote boxes
+document.querySelectorAll('.quote-box').forEach(q => {
+  gsap.from(q, {
+    scrollTrigger:{trigger:q, start:'top 85%'},
+    opacity:0, x:-40, duration:0.7
+  });
+});
+
+// Gradient background shift on scroll
+window.addEventListener('scroll', () => {
+  const scrollPct = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+  const bg = document.getElementById('gradientBg');
+  const pinkAmt = 1 - scrollPct;
+  const goldAmt = scrollPct;
+  bg.style.background = `radial-gradient(ellipse at ${30+scrollPct*40}% 50%, rgba(255,107,157,${0.25*pinkAmt}) 0%, rgba(255,215,0,${0.2*goldAmt}) 50%, transparent 80%)`;
+});
+
+// ===== INTERACTIVE: EVOLUTION STAGES =====
+function toggleEvo(el, idx){
+  document.querySelectorAll('.evo-stage').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ===== INTERACTIVE: HARNESS DETAIL =====
+function showHarnessDetail(type){
+  document.querySelectorAll('.harness-detail').forEach(d => d.classList.remove('visible'));
+  const target = document.getElementById('detail-'+type);
+  if(target) target.classList.add('visible');
+}
+
+// ===== INTERACTIVE: DESIGN PATTERNS =====
+function showPattern(idx){
+  document.querySelectorAll('.pattern-tab').forEach((t,i) => {
+    t.classList.toggle('active', i===idx);
+  });
+  document.querySelectorAll('.pattern-panel').forEach((p,i) => {
+    p.classList.toggle('active', i===idx);
+  });
+}
+
+// ===== INTERACTIVE: FILE TREE =====
+function toggleTreeFolder(el){
+  const content = el.nextElementSibling;
+  if(content && content.classList.contains('tree-folder-content')){
+    content.classList.toggle('collapsed');
+  }
+}
+
+// ===== INTERACTIVE: WORKFLOW PHASES =====
+function togglePhase(el){
+  const wasExpanded = el.classList.contains('expanded');
+  document.querySelectorAll('.wf-phase').forEach(p => p.classList.remove('expanded'));
+  if(!wasExpanded) el.classList.add('expanded');
+}
+</script>
+</body>
+</html>

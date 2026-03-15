@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3년의 혁명 — AI 타임라인 2022~2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --c-2022: #FF6B35;
+  --c-2023: #E8396B;
+  --c-2024: #9B59B6;
+  --c-2025: #3498DB;
+  --c-2026: #00D4AA;
+  --bg-dark: #0a0a0f;
+  --text-primary: #f0f0f5;
+  --text-secondary: #d0d0dd;
+}
+
+html { scroll-behavior: auto; }
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== PARTICLE CANVAS ===== */
+#particles {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ===== GRADIENT OVERLAY ===== */
+#gradientBg {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  transition: background 1.5s ease;
+  background: radial-gradient(ellipse at 30% 50%, rgba(255,107,53,0.3) 0%, transparent 70%);
+}
+
+/* ===== TIMELINE NAV ===== */
+#timeline-nav {
+  position: fixed;
+  left: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+#timeline-nav .tl-line {
+  width: 2px;
+  height: 40px;
+  background: rgba(255,255,255,0.15);
+  transition: background 0.4s;
+}
+#timeline-nav .tl-line.active { background: rgba(255,255,255,0.6); }
+#timeline-nav .tl-dot {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.2);
+  background: rgba(10,10,15,0.8);
+  backdrop-filter: blur(10px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+}
+#timeline-nav .tl-dot:hover {
+  transform: scale(1.15);
+  border-color: rgba(255,255,255,0.6);
+}
+#timeline-nav .tl-dot.active {
+  transform: scale(1.2);
+  border-color: var(--active-color, #fff);
+  box-shadow: 0 0 20px var(--active-color, #fff), 0 0 40px rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.1);
+}
+#timeline-nav .tl-dot .label {
+  position: absolute;
+  left: 60px;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s;
+  pointer-events: none;
+}
+#timeline-nav .tl-dot:hover .label,
+#timeline-nav .tl-dot.active .label {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--text-primary);
+}
+
+/* ===== HERO SECTION ===== */
+.hero {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  padding: 0 20px;
+}
+.hero-subtitle {
+  font-size: clamp(14px, 2vw, 18px);
+  font-weight: 300;
+  color: var(--text-secondary);
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.hero-title {
+  font-size: clamp(36px, 7vw, 80px);
+  font-weight: 900;
+  line-height: 1.15;
+  margin-bottom: 32px;
+  background: linear-gradient(135deg, #FF6B35, #E8396B, #9B59B6, #3498DB, #00D4AA);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 6s ease infinite;
+}
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.hero-desc {
+  font-size: clamp(15px, 2vw, 20px);
+  font-weight: 300;
+  color: var(--text-secondary);
+  max-width: 700px;
+  line-height: 1.8;
+  margin-bottom: 60px;
+}
+.scroll-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: float 2s ease-in-out infinite;
+}
+.scroll-indicator span { font-size: 13px; color: var(--text-secondary); letter-spacing: 3px; }
+.scroll-arrow {
+  width: 24px;
+  height: 24px;
+  border-right: 2px solid var(--text-secondary);
+  border-bottom: 2px solid var(--text-secondary);
+  transform: rotate(45deg);
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(10px); }
+}
+
+/* ===== YEAR SECTIONS ===== */
+.year-section {
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+  padding: 120px 0;
+}
+.year-section .container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 100px 0 120px;
+}
+
+.year-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 24px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  margin-bottom: 24px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+}
+.year-badge .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+
+.year-title {
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+.year-summary {
+  font-size: clamp(16px, 2vw, 20px);
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  max-width: 800px;
+  margin-bottom: 60px;
+}
+
+/* ===== EVENT CARDS ===== */
+.event-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 36px;
+  margin-bottom: 24px;
+  backdrop-filter: blur(20px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+.event-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px;
+  height: 100%;
+  border-radius: 4px 0 0 4px;
+}
+.event-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255,255,255,0.15);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.event-card .event-date {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.event-card .event-name {
+  font-size: clamp(18px, 2.5vw, 24px);
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.event-card .event-desc {
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+.event-card .event-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 12px;
+  background: rgba(255,255,255,0.08);
+}
+
+/* ===== COUNTER ===== */
+.counter-row {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  margin: 40px 0;
+}
+.counter-item {
+  text-align: center;
+  flex: 1;
+  min-width: 140px;
+}
+.counter-number {
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.counter-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* ===== DATA TABLE ===== */
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 40px 0;
+  font-size: 14px;
+}
+.data-table thead th {
+  padding: 16px 20px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-secondary);
+}
+.data-table tbody td {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-weight: 400;
+}
+.data-table tbody tr {
+  transition: background 0.3s;
+}
+.data-table tbody tr:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+/* ===== BAR CHART ===== */
+.chart-section {
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+  padding: 120px 0;
+}
+.chart-section .container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 100px 0 120px;
+}
+.bar-chart-group {
+  margin: 50px 0;
+}
+.bar-chart-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: var(--text-secondary);
+}
+.bar-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 16px;
+}
+.bar-label {
+  font-size: 14px;
+  font-weight: 500;
+  width: 90px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.bar-track {
+  flex: 1;
+  height: 36px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 8px;
+  width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  transition: width 0s;
+  position: relative;
+}
+.bar-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 80%, rgba(255,255,255,0.15));
+  border-radius: 8px;
+}
+
+/* ===== KEY MESSAGES ===== */
+.messages-section {
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+  padding: 120px 0;
+}
+.messages-section .container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 100px 0 120px;
+}
+.message-card {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+  padding: 40px;
+  margin-bottom: 24px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px;
+  transition: all 0.5s;
+  cursor: default;
+}
+.message-card:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.12);
+  transform: translateX(10px);
+}
+.message-num {
+  font-size: 48px;
+  font-weight: 900;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 60px;
+  background: linear-gradient(135deg, var(--c-2022), var(--c-2026));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.message-content h3 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.message-content p {
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ===== SECTION DIVIDER ===== */
+.section-divider {
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+.divider-line {
+  width: 1px;
+  height: 100px;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+/* ===== SPEED COMPARISON (HERO COUNTER) ===== */
+.speed-compare {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin: 40px 0;
+}
+.speed-item {
+  flex: 1;
+  min-width: 200px;
+  padding: 28px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  text-align: center;
+  transition: all 0.4s;
+}
+.speed-item:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+.speed-item .service-name {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.speed-item .speed-val {
+  font-size: 36px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+.speed-item .speed-unit {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ===== INVESTMENT TABLE ===== */
+.invest-cards {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin: 40px 0;
+}
+.invest-card {
+  flex: 1;
+  min-width: 250px;
+  padding: 28px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.4s;
+}
+.invest-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255,255,255,0.15);
+}
+.invest-card .invest-date {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.invest-card .invest-target {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.invest-card .invest-amount {
+  font-size: 28px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+.invest-card .invest-valuation {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ===== QUOTE BOX ===== */
+.quote-box {
+  padding: 32px 40px;
+  border-left: 3px solid;
+  background: rgba(255,255,255,0.02);
+  border-radius: 0 16px 16px 0;
+  margin: 40px 0;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+/* ===== FOOTER ===== */
+.footer {
+  text-align: center;
+  padding: 80px 20px;
+  position: relative;
+  z-index: 1;
+}
+.footer p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+.footer a {
+  color: var(--c-2026);
+  text-decoration: none;
+}
+
+/* ===== SUB HEADING ===== */
+.sub-heading {
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 700;
+  margin: 60px 0 20px;
+}
+.sub-desc {
+  font-size: 16px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 30px;
+  max-width: 800px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  #timeline-nav { left: 12px; }
+  #timeline-nav .tl-dot { width: 36px; height: 36px; font-size: 11px; }
+  #timeline-nav .tl-dot .label { display: none; }
+  #timeline-nav .tl-line { height: 24px; }
+  .year-section .container,
+  .chart-section .container,
+  .messages-section .container {
+    padding: 0 20px 0 64px;
+  }
+  .counter-row { gap: 20px; }
+  .speed-compare { flex-direction: column; }
+  .invest-cards { flex-direction: column; }
+  .bar-label { width: 60px; font-size: 12px; }
+  .message-card { flex-direction: column; gap: 16px; padding: 24px; }
+  .message-num { font-size: 36px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div id="gradientBg"></div>
+
+<!-- TIMELINE NAV -->
+<nav id="timeline-nav">
+  <div class="tl-dot" data-year="hero" style="--active-color: #fff;" onclick="scrollToSection('hero')">
+    TOP
+    <span class="label">처음으로</span>
+  </div>
+  <div class="tl-line"></div>
+  <div class="tl-dot" data-year="2022" style="--active-color: var(--c-2022);" onclick="scrollToSection('y2022')">
+    '22
+    <span class="label">ChatGPT, 대중화</span>
+  </div>
+  <div class="tl-line"></div>
+  <div class="tl-dot" data-year="2023" style="--active-color: var(--c-2023);" onclick="scrollToSection('y2023')">
+    '23
+    <span class="label">경쟁 격화</span>
+  </div>
+  <div class="tl-line"></div>
+  <div class="tl-dot" data-year="2024" style="--active-color: var(--c-2024);" onclick="scrollToSection('y2024')">
+    '24
+    <span class="label">멀티모달 & 추론</span>
+  </div>
+  <div class="tl-line"></div>
+  <div class="tl-dot" data-year="2025" style="--active-color: var(--c-2025);" onclick="scrollToSection('y2025')">
+    '25
+    <span class="label">지각변동</span>
+  </div>
+  <div class="tl-line"></div>
+  <div class="tl-dot" data-year="2026" style="--active-color: var(--c-2026);" onclick="scrollToSection('y2026')">
+    '26
+    <span class="label">초고속 반복</span>
+  </div>
+  <div class="tl-line"></div>
+  <div class="tl-dot" data-year="chart" style="--active-color: #FFD700;" onclick="scrollToSection('chart-sec')">
+    <span style="font-size:16px;">📊</span>
+    <span class="label">변화 속도 분석</span>
+  </div>
+  <div class="tl-line"></div>
+  <div class="tl-dot" data-year="msg" style="--active-color: #FF6B9D;" onclick="scrollToSection('messages-sec')">
+    <span style="font-size:16px;">💡</span>
+    <span class="label">5가지 핵심 메시지</span>
+  </div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero" id="hero">
+  <div class="hero-subtitle">AI 트렌드 온보딩 완벽 가이드</div>
+  <h1 class="hero-title">3년의 혁명<br>AI 타임라인<br>2022 — 2026</h1>
+  <p class="hero-desc">ChatGPT 출시부터 2026년 현재까지, AI 산업은 <strong>"6개월에 세대 교체"</strong>라는 전례 없는 속도로 진화해왔습니다. 그 숨 가쁜 여정을 한눈에 조망합니다.</p>
+  <div class="scroll-indicator">
+    <span>SCROLL</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- ===================== 2022 ===================== -->
+<section class="year-section" id="y2022">
+  <div class="container">
+    <div class="year-badge" style="border-color: rgba(255,107,53,0.3);">
+      <div class="dot" style="background: var(--c-2022);"></div>
+      CHAPTER 01
+    </div>
+    <h2 class="year-title" style="color: var(--c-2022);">2022년</h2>
+    <p class="year-summary">모든 것은 하나의 채팅창에서 시작되었다</p>
+
+    <div class="event-card" style="--card-color: var(--c-2022);">
+      <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:var(--c-2022);border-radius:4px 0 0 4px;"></div>
+      <div class="event-date" style="color: var(--c-2022);">2022년 11월 30일</div>
+      <div class="event-name">ChatGPT 출시</div>
+      <div class="event-desc">
+        상상해보세요. 어느 날 갑자기 "아무 질문이나 해보세요"라고 말하는 AI가 인터넷에 등장합니다. OpenAI는 GPT-3.5 기반의 대화형 AI 서비스 ChatGPT를 공개했습니다. 이것은 단순한 제품 출시가 아니라, <strong>AI가 연구실에서 거실로 걸어 나온 순간</strong>이었습니다.
+      </div>
+      <span class="event-tag" style="color: var(--c-2022);">OpenAI</span>
+    </div>
+
+    <!-- Speed Counters -->
+    <div class="counter-row">
+      <div class="counter-item">
+        <div class="counter-number" style="color: var(--c-2022);" data-target="5" data-suffix="일">0</div>
+        <div class="counter-label">100만 명 달성</div>
+      </div>
+      <div class="counter-item">
+        <div class="counter-number" style="color: var(--c-2022);" data-target="2" data-suffix="개월">0</div>
+        <div class="counter-label">1억 명 달성</div>
+      </div>
+    </div>
+
+    <p class="sub-heading">1억 사용자 도달 속도 비교</p>
+    <div class="speed-compare">
+      <div class="speed-item" style="border-color: rgba(255,107,53,0.3);">
+        <div class="service-name" style="color: var(--c-2022);">ChatGPT</div>
+        <div class="speed-val" style="color: var(--c-2022);"><span data-target="2" data-suffix="">0</span>개월</div>
+        <div class="speed-unit">2022.11 출시</div>
+      </div>
+      <div class="speed-item">
+        <div class="service-name">TikTok</div>
+        <div class="speed-val"><span data-target="9" data-suffix="">0</span>개월</div>
+        <div class="speed-unit">4.5배 더 오래 걸림</div>
+      </div>
+      <div class="speed-item">
+        <div class="service-name">Instagram</div>
+        <div class="speed-val"><span data-target="2.5" data-suffix="">0</span>년</div>
+        <div class="speed-unit">15배 더 오래 걸림</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== 2023 ===================== -->
+<section class="year-section" id="y2023">
+  <div class="container">
+    <div class="year-badge" style="border-color: rgba(232,57,107,0.3);">
+      <div class="dot" style="background: var(--c-2023);"></div>
+      CHAPTER 02
+    </div>
+    <h2 class="year-title" style="color: var(--c-2023);">2023년</h2>
+    <p class="year-summary">경쟁자들이 링 위에 올라서다</p>
+
+    <p class="sub-heading">전반기: 거인들의 등장</p>
+
+    <div class="event-card">
+      <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:var(--c-2023);border-radius:4px 0 0 4px;"></div>
+      <div class="event-date" style="color: var(--c-2023);">2023년 2월</div>
+      <div class="event-name">Google Bard 발표</div>
+      <div class="event-desc">검색 시장의 절대 강자가 "우리도 AI 한다"고 선언한 순간. ChatGPT에 대한 Google의 공식 대응이었습니다.</div>
+      <span class="event-tag" style="color: var(--c-2023);">Google</span>
+    </div>
+
+    <div class="event-card">
+      <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:var(--c-2023);border-radius:4px 0 0 4px;"></div>
+      <div class="event-date" style="color: var(--c-2023);">2023년 3월 14일</div>
+      <div class="event-name">GPT-4 + Claude 1.0 동시 출시</div>
+      <div class="event-desc">OpenAI는 텍스트와 이미지를 동시에 이해하는 멀티모달 모델 GPT-4를 공개합니다. 변호사 시험 상위 10% 수준의 성적을 기록하며 LLM 성능의 새 기준을 제시했습니다. 같은 날, Anthropic도 안전성을 강조한 Claude 1.0을 출시하며 "안전한 AI"라는 차별화된 깃발을 꽂았습니다.</div>
+      <span class="event-tag" style="color: var(--c-2023);">OpenAI + Anthropic</span>
+    </div>
+
+    <div class="event-card">
+      <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:var(--c-2023);border-radius:4px 0 0 4px;"></div>
+      <div class="event-date" style="color: var(--c-2023);">2023년 7월</div>
+      <div class="event-name">LLaMA 2 오픈소스 공개</div>
+      <div class="event-desc">Meta가 상업적 사용이 가능한 라이선스로 LLaMA 2를 오픈소스 공개했습니다. 마치 요리 경연대회에서 비밀 레시피를 전부 공개한 것과 같았습니다. 오픈소스 LLM 생태계의 폭발적 성장을 이끌었습니다.</div>
+      <span class="event-tag" style="color: var(--c-2023);">Meta</span>
+    </div>
+
+    <p class="sub-heading">후반기: 드라마틱한 5일</p>
+
+    <div class="event-card">
+      <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:var(--c-2023);border-radius:4px 0 0 4px;"></div>
+      <div class="event-date" style="color: var(--c-2023);">2023년 11월 6일</div>
+      <div class="event-name">GPTs & GPT Store 발표</div>
+      <div class="event-desc">OpenAI 첫 개발자 컨퍼런스 DevDay에서 커스텀 GPT 생성 기능인 GPTs와 GPT Store 계획을 발표합니다. AI 앱스토어 시대를 예고하는 순간이었습니다.</div>
+      <span class="event-tag" style="color: var(--c-2023);">OpenAI</span>
+    </div>
+
+    <div class="event-card" style="border-color: rgba(232,57,107,0.2); background: rgba(232,57,107,0.03);">
+      <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:var(--c-2023);border-radius:4px 0 0 4px;"></div>
+      <div class="event-date" style="color: var(--c-2023);">2023년 11월 17일 ~ 22일</div>
+      <div class="event-name">샘 알트먼 해임 — 복귀 <span style="font-size:14px; color:var(--c-2023);">(단 5일)</span></div>
+      <div class="event-desc">OpenAI 이사회가 CEO 샘 알트먼을 전격 해임합니다. 전 직원의 95%가 복귀를 요구하는 전례 없는 반발이 일어났고, 5일 만에 복귀합니다. AI 기업 거버넌스의 취약성과 핵심 인물 의존도를 적나라하게 드러낸 AI 역사상 가장 드라마틱한 사건이었습니다.</div>
+      <span class="event-tag" style="color: var(--c-2023);">OpenAI 거버넌스 위기</span>
+    </div>
+
+    <div class="event-card">
+      <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:var(--c-2023);border-radius:4px 0 0 4px;"></div>
+      <div class="event-date" style="color: var(--c-2023);">2023년 12월</div>
+      <div class="event-name">Gemini 1.0 발표</div>
+      <div class="event-desc">Google DeepMind가 Gemini 1.0(Ultra/Pro/Nano)을 발표하며 GPT-4와의 정면 승부를 선언합니다.</div>
+      <span class="event-tag" style="color: var(--c-2023);">Google DeepMind</span>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== 2024 ===================== -->
+<section class="year-section" id="y2024">
+  <div class="container">
+    <div class="year-badge" style="border-color: rgba(155,89,182,0.3);">
+      <div class="dot" style="background: var(--c-2024);"></div>
+      CHAPTER 03
+    </div>
+    <h2 class="year-title" style="color: var(--c-2024);">2024년</h2>
+    <p class="year-summary">눈과 귀가 열리다 — 멀티모달과 추론의 해</p>
+
+    <p class="sub-heading">눈을 뜬 AI: 멀티모달의 물결</p>
+    <p class="sub-desc">AI가 텍스트라는 울타리를 넘어 세상을 보고, 듣고, 심지어 영상을 만들기 시작한 해입니다.</p>
+
+    <table class="data-table">
+      <thead>
+        <tr><th>시기</th><th>이벤트</th><th>의미</th></tr>
+      </thead>
+      <tbody>
+        <tr><td style="color:var(--c-2024);">2024.02</td><td><strong>Bard → Gemini</strong> 리브랜딩</td><td>AI 브랜드 전략의 전환점</td></tr>
+        <tr><td style="color:var(--c-2024);">2024.02</td><td>OpenAI <strong>Sora</strong> 프리뷰</td><td>텍스트에서 1분 길이 고품질 영상 생성</td></tr>
+        <tr><td style="color:var(--c-2024);">2024.02</td><td><strong>Gemini 1.5 Pro</strong> 프리뷰</td><td>100만 토큰 컨텍스트 최초 달성</td></tr>
+        <tr><td style="color:var(--c-2024);">2024.03</td><td>Anthropic <strong>Claude 3</strong> 패밀리</td><td>일부 벤치마크에서 GPT-4 최초 추월</td></tr>
+        <tr><td style="color:var(--c-2024);">2024.04</td><td>Meta <strong>LLaMA 3</strong> 출시</td><td>오픈소스 모델 성능이 상용 모델에 근접</td></tr>
+        <tr><td style="color:var(--c-2024);">2024.05</td><td>OpenAI <strong>GPT-4o</strong> 출시</td><td>"Omni" — 텍스트/음성/이미지 통합 처리</td></tr>
+        <tr><td style="color:var(--c-2024);">2024.06</td><td>Anthropic <strong>Claude 3.5 Sonnet</strong></td><td>중간 티어가 최상위를 능가하는 이변</td></tr>
+        <tr><td style="color:var(--c-2024);">2024.08</td><td>xAI <strong>Grok-2</strong> 출시</td><td>일론 머스크의 xAI 본격 합류</td></tr>
+      </tbody>
+    </table>
+
+    <p class="sub-heading">생각하는 AI: 추론 모델의 탄생</p>
+    <p class="sub-desc">단순히 빠르게 답하는 것에서, 깊이 생각하고 답하는 모델이 등장했습니다.</p>
+
+    <div class="event-card">
+      <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:var(--c-2024);border-radius:4px 0 0 4px;"></div>
+      <div class="event-date" style="color: var(--c-2024);">2024년 9월 12일</div>
+      <div class="event-name">o1 프리뷰 출시</div>
+      <div class="event-desc">Chain-of-thought(사고 과정)를 모델 내부에 내재화하여, 수학과 코딩 문제에서 획기적인 성능 향상. AI가 "즉답"에서 "숙고"로 전환한 것과 같습니다.</div>
+      <span class="event-tag" style="color: var(--c-2024);">OpenAI 추론</span>
+    </div>
+
+    <div class="event-card">
+      <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:var(--c-2024);border-radius:4px 0 0 4px;"></div>
+      <div class="event-date" style="color: var(--c-2024);">2024년 10월</div>
+      <div class="event-name">Computer Use 공개</div>
+      <div class="event-desc">Anthropic이 AI가 사람처럼 마우스를 움직이고 키보드를 치며 컴퓨터를 직접 조작하는 기능을 공개. 에이전트 시대의 서막이었습니다.</div>
+      <span class="event-tag" style="color: var(--c-2024);">Anthropic</span>
+    </div>
+
+    <div class="event-card">
+      <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:var(--c-2024);border-radius:4px 0 0 4px;"></div>
+      <div class="event-date" style="color: var(--c-2024);">2024년 12월</div>
+      <div class="event-name">연말 릴레이: Sora Turbo · Gemini 2.0 · o3</div>
+      <div class="event-desc">Sora Turbo 정식 오픈(12/9), Gemini 2.0 Flash 출시(12/11), o3 발표(12/20)로 숨 가쁜 2024년을 마무리합니다.</div>
+      <span class="event-tag" style="color: var(--c-2024);">OpenAI · Google</span>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== 2025 ===================== -->
+<section class="year-section" id="y2025">
+  <div class="container">
+    <div class="year-badge" style="border-color: rgba(52,152,219,0.3);">
+      <div class="dot" style="background: var(--c-2025);"></div>
+      CHAPTER 04
+    </div>
+    <h2 class="year-title" style="color: var(--c-2025);">2025년</h2>
+    <p class="year-summary">지각변동 — DeepSeek의 충격과 에이전트의 시대</p>
+
+    <p class="sub-heading">1월: 두 개의 폭탄</p>
+
+    <div class="event-card" style="border-color: rgba(52,152,219,0.2); background: rgba(52,152,219,0.03);">
+      <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:var(--c-2025);border-radius:4px 0 0 4px;"></div>
+      <div class="event-date" style="color: var(--c-2025);">2025년 1월 20일</div>
+      <div class="event-name">DeepSeek R1 — "AI 스푸트니크 모먼트"</div>
+      <div class="event-desc">중국 스타트업 DeepSeek이 R1을 MIT 라이선스로 공개합니다. GPT-4/o1 수준의 성능을 훨씬 낮은 비용으로 달성, 1주일 만에 iOS 앱스토어 1위를 차지했습니다. 냉전 시대 소련의 스푸트니크 위성이 미국에 충격을 준 것처럼, 서방 AI 기업들의 기술 우위라는 확신에 균열을 냈습니다.</div>
+      <span class="event-tag" style="color: var(--c-2025);">DeepSeek · 오픈소스</span>
+    </div>
+
+    <div class="event-card" style="border-color: rgba(52,152,219,0.2); background: rgba(52,152,219,0.03);">
+      <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:var(--c-2025);border-radius:4px 0 0 4px;"></div>
+      <div class="event-date" style="color: var(--c-2025);">2025년 1월 21일</div>
+      <div class="event-name">Stargate 프로젝트 — 5,000억 달러</div>
+      <div class="event-desc">트럼프 대통령이 백악관에서 발표. OpenAI, SoftBank, Oracle이 참여하는 4년간 5,000억 달러 규모의 AI 인프라 투자 합작법인. 초기 1,000억 달러를 즉시 투입하고 10만 개 일자리 창출을 목표로 합니다. "저비용 고효율"과 "천문학적 자본 투입"이라는 완전히 다른 전략이 동시에 등장했습니다.</div>
+      <span class="event-tag" style="color: var(--c-2025);">OpenAI · SoftBank · Oracle</span>
+    </div>
+
+    <div class="counter-row">
+      <div class="counter-item">
+        <div class="counter-number" style="color: var(--c-2025);" data-target="5000" data-suffix="억$">0</div>
+        <div class="counter-label">Stargate 총 투자 규모</div>
+      </div>
+      <div class="counter-item">
+        <div class="counter-number" style="color: var(--c-2025);" data-target="100000" data-suffix="개">0</div>
+        <div class="counter-label">창출 목표 일자리</div>
+      </div>
+    </div>
+
+    <p class="sub-heading">상반기: 모델 릴레이와 규제의 시작</p>
+
+    <table class="data-table">
+      <thead>
+        <tr><th>시기</th><th>이벤트</th><th>의미</th></tr>
+      </thead>
+      <tbody>
+        <tr><td style="color:var(--c-2025);">01.31</td><td>OpenAI <strong>o3-mini</strong></td><td>비용 효율적 추론 AI</td></tr>
+        <tr><td style="color:var(--c-2025);">02.02</td><td><strong>EU AI Act</strong> 1차 시행</td><td>세계 최초 포괄적 AI 규제 발효</td></tr>
+        <tr><td style="color:var(--c-2025);">02.17</td><td>xAI <strong>Grok 3</strong></td><td>경쟁 구도 5파전으로 확대</td></tr>
+        <tr><td style="color:var(--c-2025);">02.24</td><td>Anthropic <strong>Claude 3.7 Sonnet</strong></td><td>확장된 사고(extended thinking) 도입</td></tr>
+        <tr><td style="color:var(--c-2025);">02.27</td><td>OpenAI <strong>GPT-4.5</strong> (Orion)</td><td>GPT-4 계열의 마지막 모델</td></tr>
+        <tr><td style="color:var(--c-2025);">03.25</td><td>Google <strong>Gemini 2.5 Pro</strong></td><td>네이티브 Chain-of-thought 추론</td></tr>
+        <tr><td style="color:var(--c-2025);">04.05</td><td>Meta <strong>LLaMA 4</strong></td><td>MoE, 최대 1,000만 토큰, 멀티모달</td></tr>
+        <tr><td style="color:var(--c-2025);">04.16</td><td>OpenAI <strong>o3 및 o4-mini</strong></td><td>에이전트형 추론 모델</td></tr>
+        <tr><td style="color:var(--c-2025);">05.22</td><td>Anthropic <strong>Claude Opus 4</strong></td><td>코딩/에이전트 작업 업계 최고</td></tr>
+      </tbody>
+    </table>
+
+    <p class="sub-heading">하반기: 통합과 대규모 자본</p>
+
+    <div class="event-card">
+      <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:var(--c-2025);border-radius:4px 0 0 4px;"></div>
+      <div class="event-date" style="color: var(--c-2025);">2025년 8월 7일</div>
+      <div class="event-name">GPT-5 출시 — 통합(Unified) 모델</div>
+      <div class="event-desc">o-시리즈의 추론 능력과 GPT 시리즈의 빠른 응답을 하나로 결합한 "통합 모델"이라는 새로운 개념을 제시했습니다.</div>
+      <span class="event-tag" style="color: var(--c-2025);">OpenAI</span>
+    </div>
+
+    <p class="sub-heading">투자 규모: 새로운 차원</p>
+
+    <div class="invest-cards">
+      <div class="invest-card">
+        <div class="invest-date">2025.03</div>
+        <div class="invest-target" style="color: var(--c-2025);">OpenAI</div>
+        <div class="invest-amount" style="color: var(--c-2025);"><span data-target="400" data-suffix="">0</span>억 달러</div>
+        <div class="invest-valuation">기업가치 3,000억 달러</div>
+      </div>
+      <div class="invest-card">
+        <div class="invest-date">2025.09</div>
+        <div class="invest-target" style="color: var(--c-2025);">Anthropic (Series F)</div>
+        <div class="invest-amount" style="color: var(--c-2025);"><span data-target="130" data-suffix="">0</span>억 달러</div>
+        <div class="invest-valuation">기업가치 1,830억 달러</div>
+      </div>
+      <div class="invest-card">
+        <div class="invest-date">2025.10</div>
+        <div class="invest-target" style="color: var(--c-2025);">OpenAI (직원 주식 매각)</div>
+        <div class="invest-amount" style="color: var(--c-2025);"><span data-target="100" data-suffix="">0</span>억 달러</div>
+        <div class="invest-valuation">기업가치 5,000억 달러</div>
+      </div>
+    </div>
+
+    <div class="event-card">
+      <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:var(--c-2025);border-radius:4px 0 0 4px;"></div>
+      <div class="event-date" style="color: var(--c-2025);">2025년 11월 24일</div>
+      <div class="event-name">Claude Opus 4.5 출시</div>
+      <div class="event-desc">Anthropic이 2025년을 마무리하는 모델을 출시합니다.</div>
+      <span class="event-tag" style="color: var(--c-2025);">Anthropic</span>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== 2026 ===================== -->
+<section class="year-section" id="y2026">
+  <div class="container">
+    <div class="year-badge" style="border-color: rgba(0,212,170,0.3);">
+      <div class="dot" style="background: var(--c-2026);"></div>
+      CHAPTER 05
+    </div>
+    <h2 class="year-title" style="color: var(--c-2026);">2026년</h2>
+    <p class="year-summary">지금 이 순간 — 초고속 반복의 시대</p>
+    <p class="sub-desc">여러분이 이 글을 읽고 있는 바로 지금, AI 산업은 <strong>2~3주마다 새로운 모델이 등장</strong>하는 초고속 반복의 시대에 돌입해 있습니다.</p>
+
+    <table class="data-table">
+      <thead>
+        <tr><th>시기</th><th>이벤트</th><th>주체</th><th>의미</th></tr>
+      </thead>
+      <tbody>
+        <tr><td style="color:var(--c-2026);">2026.01</td><td><strong>Grok 5</strong> 출시</td><td>xAI</td><td>AI 모델 스케일링의 새 기록</td></tr>
+        <tr><td style="color:var(--c-2026);">02.05</td><td><strong>Claude Opus 4.6</strong> 출시</td><td>Anthropic</td><td>100만 토큰 컨텍스트(베타), 적응형 사고, Agent Teams</td></tr>
+        <tr><td style="color:var(--c-2026);">02.05</td><td><strong>GPT-5.3 Codex</strong> 출시</td><td>OpenAI</td><td>가장 진보된 에이전틱 코딩 모델, 속도 25% 향상</td></tr>
+        <tr><td style="color:var(--c-2026);">02.17</td><td><strong>Claude Sonnet 4.6</strong> 출시</td><td>Anthropic</td><td>Opus급 성능을 Sonnet 가격으로</td></tr>
+        <tr><td style="color:var(--c-2026);">02.19</td><td><strong>Gemini 3.1 Pro</strong> 출시</td><td>Google</td><td>ARC-AGI-2에서 77.1% 달성, Deep Think 통합</td></tr>
+        <tr><td style="color:var(--c-2026);">03 (예정)</td><td><strong>NVIDIA GTC 2026</strong></td><td>NVIDIA</td><td>차세대 AI 칩 및 플랫폼 발표 예정</td></tr>
+        <tr><td style="color:var(--c-2026);">03 (예정)</td><td><strong>Apple Siri AI 업데이트</strong></td><td>Apple</td><td>iOS 26.4와 함께 대폭 업그레이드 예정</td></tr>
+      </tbody>
+    </table>
+
+    <div class="event-card" style="border-color: rgba(0,212,170,0.2); background: rgba(0,212,170,0.03);">
+      <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:var(--c-2026);border-radius:4px 0 0 4px;"></div>
+      <div class="event-date" style="color: var(--c-2026);">2026년</div>
+      <div class="event-name">Anthropic Series G — 300억 달러</div>
+      <div class="event-desc">기업가치 3,800억 달러. AI 기업 가치의 천장이 계속 높아지고 있습니다.</div>
+      <span class="event-tag" style="color: var(--c-2026);">Anthropic 투자</span>
+    </div>
+
+    <div class="counter-row">
+      <div class="counter-item">
+        <div class="counter-number" style="color: var(--c-2026);" data-target="300" data-suffix="억$">0</div>
+        <div class="counter-label">Series G 투자 규모</div>
+      </div>
+      <div class="counter-item">
+        <div class="counter-number" style="color: var(--c-2026);" data-target="3800" data-suffix="억$">0</div>
+        <div class="counter-label">Anthropic 기업가치</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== CHART SECTION ===================== -->
+<section class="chart-section" id="chart-sec">
+  <div class="container">
+    <div class="year-badge" style="border-color: rgba(255,215,0,0.3);">
+      <div class="dot" style="background: #FFD700;"></div>
+      DATA ANALYSIS
+    </div>
+    <h2 class="year-title" style="background: linear-gradient(135deg, #FFD700, #FF6B35); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">변화 속도 분석</h2>
+    <p class="year-summary">무어의 법칙은 잊으세요</p>
+    <p class="sub-desc">무어의 법칙은 "18~24개월마다 트랜지스터 수가 2배"라는 반도체 산업의 유명한 관찰이었습니다. 그런데 AI 산업은 이 법칙조차 느려 보이게 만들고 있습니다.</p>
+
+    <div class="quote-box" style="border-color: #FFD700;">
+      <strong>핵심 통찰</strong>: 무어의 법칙이 "2년에 2배"였다면, 생성형 AI 시대는 <strong>"6개월에 세대 교체"</strong>에 가까운 속도로 진행되고 있습니다.
+    </div>
+
+    <!-- Bar Chart: 모델 출시 수 -->
+    <div class="bar-chart-group" id="barChart1">
+      <div class="bar-chart-title">주요 모델 출시 수</div>
+      <div class="bar-row">
+        <div class="bar-label">2023</div>
+        <div class="bar-track"><div class="bar-fill" data-width="25" style="background: linear-gradient(90deg, var(--c-2023), #ff6b9d);">~5개</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">2024</div>
+        <div class="bar-track"><div class="bar-fill" data-width="60" style="background: linear-gradient(90deg, var(--c-2024), #c084fc);">~12개</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">2025</div>
+        <div class="bar-track"><div class="bar-fill" data-width="100" style="background: linear-gradient(90deg, var(--c-2025), #60a5fa);">~20개</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">2026 (3월)</div>
+        <div class="bar-track"><div class="bar-fill" data-width="50" style="background: linear-gradient(90deg, var(--c-2026), #34d399);">~10개</div></div>
+      </div>
+    </div>
+
+    <!-- Bar Chart: 업데이트 주기 (역순 — 짧을수록 긴 바) -->
+    <div class="bar-chart-group" id="barChart2">
+      <div class="bar-chart-title">모델 업데이트 주기 (짧을수록 빠른 혁신)</div>
+      <div class="bar-row">
+        <div class="bar-label">2023</div>
+        <div class="bar-track"><div class="bar-fill" data-width="25" style="background: linear-gradient(90deg, var(--c-2023), #ff6b9d);">6~12개월</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">2024</div>
+        <div class="bar-track"><div class="bar-fill" data-width="50" style="background: linear-gradient(90deg, var(--c-2024), #c084fc);">3~6개월</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">2025</div>
+        <div class="bar-track"><div class="bar-fill" data-width="75" style="background: linear-gradient(90deg, var(--c-2025), #60a5fa);">1~3개월</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">2026</div>
+        <div class="bar-track"><div class="bar-fill" data-width="100" style="background: linear-gradient(90deg, var(--c-2026), #34d399);">2~3주</div></div>
+      </div>
+    </div>
+
+    <!-- Bar Chart: 컨텍스트 윈도우 -->
+    <div class="bar-chart-group" id="barChart3">
+      <div class="bar-chart-title">최대 컨텍스트 윈도우</div>
+      <div class="bar-row">
+        <div class="bar-label">2023</div>
+        <div class="bar-track"><div class="bar-fill" data-width="12" style="background: linear-gradient(90deg, var(--c-2023), #ff6b9d);">128K</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">2024</div>
+        <div class="bar-track"><div class="bar-fill" data-width="40" style="background: linear-gradient(90deg, var(--c-2024), #c084fc);">1M</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">2025</div>
+        <div class="bar-track"><div class="bar-fill" data-width="90" style="background: linear-gradient(90deg, var(--c-2025), #60a5fa);">10M</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">2026</div>
+        <div class="bar-track"><div class="bar-fill" data-width="100" style="background: linear-gradient(90deg, var(--c-2026), #34d399);">10M+</div></div>
+      </div>
+    </div>
+
+    <!-- Bar Chart: 경쟁 플레이어 수 -->
+    <div class="bar-chart-group" id="barChart4">
+      <div class="bar-chart-title">경쟁 플레이어 수</div>
+      <div class="bar-row">
+        <div class="bar-label">2023</div>
+        <div class="bar-track"><div class="bar-fill" data-width="50" style="background: linear-gradient(90deg, var(--c-2023), #ff6b9d);">3사</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">2024</div>
+        <div class="bar-track"><div class="bar-fill" data-width="67" style="background: linear-gradient(90deg, var(--c-2024), #c084fc);">4사</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">2025</div>
+        <div class="bar-track"><div class="bar-fill" data-width="83" style="background: linear-gradient(90deg, var(--c-2025), #60a5fa);">5사</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">2026</div>
+        <div class="bar-track"><div class="bar-fill" data-width="100" style="background: linear-gradient(90deg, var(--c-2026), #34d399);">6사+</div></div>
+      </div>
+    </div>
+
+    <p class="sub-heading">왜 이렇게 빠른가?</p>
+    <p class="sub-desc">반도체는 원자라는 물리적 한계에 부딪히지만, AI는 <strong>소프트웨어, 알고리즘, 데이터</strong> 세 가지가 동시에 개선되면서 기하급수적으로 발전합니다.</p>
+
+    <div class="speed-compare" style="margin-top: 30px;">
+      <div class="speed-item">
+        <div class="service-name" style="color: #FFD700;">모델 성능</div>
+        <div class="speed-val" style="color: #FFD700; font-size: 28px;">2~3배</div>
+        <div class="speed-unit">GPT-4 대비 2025년 벤치마크 향상</div>
+      </div>
+      <div class="speed-item">
+        <div class="service-name" style="color: #FFD700;">비용 효율성</div>
+        <div class="speed-val" style="color: #FFD700; font-size: 28px;">5~10배</div>
+        <div class="speed-unit">동일 성능 기준 API 비용 매년 감소</div>
+      </div>
+      <div class="speed-item">
+        <div class="service-name" style="color: #FFD700;">투자 규모</div>
+        <div class="speed-val" style="color: #FFD700; font-size: 28px;">100배+</div>
+        <div class="speed-unit">2023년 수십억 → 2025년 수천억 달러</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== 5 KEY MESSAGES ===================== -->
+<section class="messages-section" id="messages-sec">
+  <div class="container">
+    <div class="year-badge" style="border-color: rgba(255,107,157,0.3);">
+      <div class="dot" style="background: #FF6B9D;"></div>
+      KEY TAKEAWAYS
+    </div>
+    <h2 class="year-title" style="background: linear-gradient(135deg, #FF6B9D, #9B59B6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">AI 입문자가 기억해야 할 5가지</h2>
+    <p class="year-summary" style="margin-bottom: 50px;"></p>
+
+    <div class="message-card">
+      <div class="message-num">01</div>
+      <div class="message-content">
+        <h3>ChatGPT는 시작일 뿐입니다</h3>
+        <p>2022년 11월 이후 3년 만에 AI 산업은 완전히 다른 세계가 되었습니다. 단순 챗봇에서 멀티모달, 추론, 에이전트, 영상 생성으로 진화했습니다.</p>
+      </div>
+    </div>
+
+    <div class="message-card">
+      <div class="message-num">02</div>
+      <div class="message-content">
+        <h3>경쟁이 혁신을 만듭니다</h3>
+        <p>OpenAI 독주 체제에서 Google, Anthropic, Meta, xAI, DeepSeek까지 참여하는 다자 경쟁으로 전환되면서, 모델 성능은 급상승하고 비용은 급락했습니다.</p>
+      </div>
+    </div>
+
+    <div class="message-card">
+      <div class="message-num">03</div>
+      <div class="message-content">
+        <h3>오픈소스가 판을 바꿉니다</h3>
+        <p>Meta의 LLaMA 시리즈와 DeepSeek R1은 오픈소스 모델도 상용 모델에 필적할 수 있음을 증명했습니다. 누구나 최첨단 AI를 가져다 쓸 수 있는 시대입니다.</p>
+      </div>
+    </div>
+
+    <div class="message-card">
+      <div class="message-num">04</div>
+      <div class="message-content">
+        <h3>규제가 뒤따르고 있습니다</h3>
+        <p>EU AI Act를 시작으로 각국의 AI 규제 프레임워크가 형성되고 있습니다. AI를 다루는 사람이라면 규제 동향을 반드시 파악해야 합니다.</p>
+      </div>
+    </div>
+
+    <div class="message-card">
+      <div class="message-num">05</div>
+      <div class="message-content">
+        <h3>변화 속도는 더 빨라집니다</h3>
+        <p>2026년 현재, 주요 AI 기업들은 2~3주 간격으로 모델을 업데이트합니다. 이 속도에 적응하는 것이 AI 시대 IT 전문가의 핵심 역량입니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CHAPTER NAV ===================== -->
+<div style="display:flex; justify-content:center; gap:20px; padding:60px 20px 20px; position:relative; z-index:1;">
+  <a href="index.html" style="padding:12px 28px; border:1px solid rgba(255,255,255,0.15); border-radius:12px; color:var(--text-secondary); text-decoration:none; font-size:14px; transition:all 0.3s;">🏠 홈</a>
+  <a href="ch2.html" style="padding:12px 28px; border:1px solid rgba(155,89,182,0.3); border-radius:12px; color:#9B59B6; text-decoration:none; font-size:14px; transition:all 0.3s;">Ch2. AI는 어떻게 생각하는가 →</a>
+</div>
+<!-- ===================== FOOTER ===================== -->
+<div class="footer">
+  <p>AI 트렌드 온보딩 완벽 가이드 &mdash; 3년의 혁명: AI 타임라인 2022~2026</p>
+  <p style="margin-top: 8px; font-size: 13px;">출처: OpenAI, Anthropic, Google AI, Meta AI, xAI, DeepSeek, EU AI Act, TechCrunch</p>
+</div>
+
+<script>
+// ===== PARTICLE SYSTEM =====
+(function() {
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+  const PARTICLE_COUNT = 80;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const yearColors = {
+    0: [255,107,53],
+    0.2: [232,57,107],
+    0.4: [155,89,182],
+    0.6: [52,152,219],
+    0.8: [0,212,170],
+    1: [0,212,170]
+  };
+
+  function lerpColor(progress) {
+    const keys = Object.keys(yearColors).map(Number).sort((a,b)=>a-b);
+    let lo = keys[0], hi = keys[keys.length-1];
+    for (let i = 0; i < keys.length - 1; i++) {
+      if (progress >= keys[i] && progress <= keys[i+1]) {
+        lo = keys[i]; hi = keys[i+1]; break;
+      }
+    }
+    const t = hi === lo ? 0 : (progress - lo) / (hi - lo);
+    const c1 = yearColors[lo], c2 = yearColors[hi];
+    return [
+      Math.round(c1[0] + (c2[0]-c1[0]) * t),
+      Math.round(c1[1] + (c2[1]-c1[1]) * t),
+      Math.round(c1[2] + (c2[2]-c1[2]) * t)
+    ];
+  }
+
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    particles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 2.5 + 0.5,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      alpha: Math.random() * 0.5 + 0.1,
+      pulseSpeed: Math.random() * 0.02 + 0.005,
+      pulsePhase: Math.random() * Math.PI * 2
+    });
+  }
+
+  let scrollProgress = 0;
+  window.addEventListener('scroll', () => {
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    scrollProgress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+  });
+
+  let frame = 0;
+  function animate() {
+    frame++;
+    ctx.clearRect(0, 0, W, H);
+    const [r, g, b] = lerpColor(scrollProgress);
+
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0) p.x = W;
+      if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H;
+      if (p.y > H) p.y = 0;
+
+      const pulse = Math.sin(frame * p.pulseSpeed + p.pulsePhase) * 0.3 + 0.7;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * pulse, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${r},${g},${b},${p.alpha * pulse})`;
+      ctx.fill();
+    });
+
+    // Draw connections
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 120) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(${r},${g},${b},${0.06 * (1 - dist/120)})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+// ===== GRADIENT BACKGROUND =====
+const gradientBg = document.getElementById('gradientBg');
+const gradients = [
+  'radial-gradient(ellipse at 30% 50%, rgba(255,107,53,0.25) 0%, transparent 70%)',
+  'radial-gradient(ellipse at 40% 40%, rgba(232,57,107,0.25) 0%, transparent 70%)',
+  'radial-gradient(ellipse at 50% 50%, rgba(155,89,182,0.25) 0%, transparent 70%)',
+  'radial-gradient(ellipse at 60% 40%, rgba(52,152,219,0.25) 0%, transparent 70%)',
+  'radial-gradient(ellipse at 70% 50%, rgba(0,212,170,0.25) 0%, transparent 70%)',
+];
+
+// ===== GSAP ANIMATIONS =====
+gsap.registerPlugin(ScrollTrigger);
+
+// Hero animations
+gsap.from('.hero-subtitle', { opacity: 0, y: 30, duration: 1, delay: 0.2 });
+gsap.from('.hero-title', { opacity: 0, y: 50, duration: 1.2, delay: 0.5 });
+gsap.from('.hero-desc', { opacity: 0, y: 30, duration: 1, delay: 0.8 });
+gsap.from('.scroll-indicator', { opacity: 0, duration: 1, delay: 1.3 });
+
+// Fade out hero on scroll
+gsap.to('.hero', {
+  opacity: 0,
+  y: -100,
+  scrollTrigger: {
+    trigger: '.hero',
+    start: 'center center',
+    end: 'bottom top',
+    scrub: 1
+  }
+});
+
+// Year sections
+document.querySelectorAll('.year-section').forEach(section => {
+  // Badge + Title
+  gsap.from(section.querySelector('.year-badge'), {
+    opacity: 0, x: -40, duration: 0.8,
+    scrollTrigger: { trigger: section, start: 'top 80%', toggleActions: 'play none none reverse' }
+  });
+  gsap.from(section.querySelector('.year-title'), {
+    opacity: 0, y: 40, duration: 0.8, delay: 0.1,
+    scrollTrigger: { trigger: section, start: 'top 80%', toggleActions: 'play none none reverse' }
+  });
+  gsap.from(section.querySelector('.year-summary'), {
+    opacity: 0, y: 30, duration: 0.8, delay: 0.2,
+    scrollTrigger: { trigger: section, start: 'top 80%', toggleActions: 'play none none reverse' }
+  });
+
+  // Event cards
+  section.querySelectorAll('.event-card').forEach((card, i) => {
+    gsap.from(card, {
+      opacity: 0, y: 60, duration: 0.7, delay: i * 0.1,
+      scrollTrigger: { trigger: card, start: 'top 85%', toggleActions: 'play none none reverse' }
+    });
+  });
+
+  // Data tables
+  section.querySelectorAll('.data-table tbody tr').forEach((tr, i) => {
+    gsap.from(tr, {
+      opacity: 0, x: -30, duration: 0.5, delay: i * 0.05,
+      scrollTrigger: { trigger: tr, start: 'top 90%', toggleActions: 'play none none reverse' }
+    });
+  });
+
+  // Sub headings
+  section.querySelectorAll('.sub-heading').forEach(h => {
+    gsap.from(h, {
+      opacity: 0, y: 30, duration: 0.6,
+      scrollTrigger: { trigger: h, start: 'top 85%', toggleActions: 'play none none reverse' }
+    });
+  });
+});
+
+// Counter animations
+function animateCounter(el) {
+  const target = parseFloat(el.dataset.target);
+  const suffix = el.dataset.suffix || '';
+  const isFloat = target % 1 !== 0;
+  const obj = { val: 0 };
+  gsap.to(obj, {
+    val: target,
+    duration: 2,
+    ease: 'power2.out',
+    scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reset' },
+    onUpdate: () => {
+      if (isFloat) {
+        el.textContent = obj.val.toFixed(1) + suffix;
+      } else if (target >= 1000) {
+        el.textContent = Math.round(obj.val).toLocaleString() + suffix;
+      } else {
+        el.textContent = Math.round(obj.val) + suffix;
+      }
+    }
+  });
+}
+document.querySelectorAll('.counter-number[data-target]').forEach(animateCounter);
+document.querySelectorAll('.speed-val [data-target]').forEach(el => {
+  const target = parseFloat(el.dataset.target);
+  const suffix = el.dataset.suffix || '';
+  const isFloat = target % 1 !== 0;
+  const obj = { val: 0 };
+  gsap.to(obj, {
+    val: target,
+    duration: 1.5,
+    ease: 'power2.out',
+    scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reset' },
+    onUpdate: () => {
+      el.textContent = isFloat ? obj.val.toFixed(1) + suffix : Math.round(obj.val) + suffix;
+    }
+  });
+});
+document.querySelectorAll('.invest-amount [data-target]').forEach(el => {
+  const target = parseFloat(el.dataset.target);
+  const obj = { val: 0 };
+  gsap.to(obj, {
+    val: target,
+    duration: 1.5,
+    ease: 'power2.out',
+    scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reset' },
+    onUpdate: () => {
+      el.textContent = Math.round(obj.val);
+    }
+  });
+});
+
+// Bar chart animations
+document.querySelectorAll('.bar-chart-group').forEach(group => {
+  group.querySelectorAll('.bar-fill').forEach((bar, i) => {
+    const targetWidth = bar.dataset.width + '%';
+    gsap.to(bar, {
+      width: targetWidth,
+      duration: 1.2,
+      delay: i * 0.15,
+      ease: 'power3.out',
+      scrollTrigger: { trigger: group, start: 'top 80%', toggleActions: 'play none none reset' }
+    });
+  });
+});
+
+// Message cards
+document.querySelectorAll('.message-card').forEach((card, i) => {
+  gsap.from(card, {
+    opacity: 0, x: -60, duration: 0.7, delay: i * 0.12,
+    scrollTrigger: { trigger: card, start: 'top 85%', toggleActions: 'play none none reverse' }
+  });
+});
+
+// Chart section animations
+const chartSec = document.querySelector('.chart-section');
+if (chartSec) {
+  gsap.from(chartSec.querySelector('.year-badge'), {
+    opacity: 0, x: -40, duration: 0.8,
+    scrollTrigger: { trigger: chartSec, start: 'top 80%', toggleActions: 'play none none reverse' }
+  });
+  gsap.from(chartSec.querySelector('.year-title'), {
+    opacity: 0, y: 40, duration: 0.8, delay: 0.1,
+    scrollTrigger: { trigger: chartSec, start: 'top 80%', toggleActions: 'play none none reverse' }
+  });
+  gsap.from(chartSec.querySelector('.quote-box'), {
+    opacity: 0, y: 30, duration: 0.8,
+    scrollTrigger: { trigger: chartSec.querySelector('.quote-box'), start: 'top 85%', toggleActions: 'play none none reverse' }
+  });
+}
+
+// Messages section header
+const msgSec = document.querySelector('.messages-section');
+if (msgSec) {
+  gsap.from(msgSec.querySelector('.year-badge'), {
+    opacity: 0, x: -40, duration: 0.8,
+    scrollTrigger: { trigger: msgSec, start: 'top 80%', toggleActions: 'play none none reverse' }
+  });
+  gsap.from(msgSec.querySelector('.year-title'), {
+    opacity: 0, y: 40, duration: 0.8, delay: 0.1,
+    scrollTrigger: { trigger: msgSec, start: 'top 80%', toggleActions: 'play none none reverse' }
+  });
+}
+
+// Speed compare & invest cards
+document.querySelectorAll('.speed-item, .invest-card').forEach((card, i) => {
+  gsap.from(card, {
+    opacity: 0, y: 40, scale: 0.95, duration: 0.6, delay: (i % 3) * 0.1,
+    scrollTrigger: { trigger: card, start: 'top 88%', toggleActions: 'play none none reverse' }
+  });
+});
+
+// ===== TIMELINE NAV ACTIVE STATE =====
+const sections = [
+  { id: 'hero', year: 'hero' },
+  { id: 'y2022', year: '2022' },
+  { id: 'y2023', year: '2023' },
+  { id: 'y2024', year: '2024' },
+  { id: 'y2025', year: '2025' },
+  { id: 'y2026', year: '2026' },
+  { id: 'chart-sec', year: 'chart' },
+  { id: 'messages-sec', year: 'msg' },
+];
+
+const dots = document.querySelectorAll('#timeline-nav .tl-dot');
+const lines = document.querySelectorAll('#timeline-nav .tl-line');
+
+function updateNav() {
+  const scrollY = window.scrollY + window.innerHeight / 3;
+  let activeIdx = 0;
+
+  sections.forEach((s, i) => {
+    const el = document.getElementById(s.id);
+    if (el && el.offsetTop <= scrollY) activeIdx = i;
+  });
+
+  dots.forEach((dot, i) => {
+    dot.classList.toggle('active', i === activeIdx);
+  });
+  lines.forEach((line, i) => {
+    line.classList.toggle('active', i < activeIdx);
+  });
+
+  // Update gradient
+  const gradientIdx = Math.min(activeIdx, gradients.length - 1);
+  if (activeIdx <= 5) {
+    gradientBg.style.background = gradients[Math.min(activeIdx, gradients.length - 1)];
+  } else {
+    gradientBg.style.background = 'radial-gradient(ellipse at 50% 50%, rgba(255,215,0,0.15) 0%, transparent 70%)';
+  }
+}
+
+window.addEventListener('scroll', updateNav);
+updateNav();
+
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    window.scrollTo({ top: el.offsetTop, behavior: 'smooth' });
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch2. AI는 어떻게 생각하는가</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --c-purple: #9B59B6;
+  --c-blue: #3498DB;
+  --c-grad-start: #9B59B6;
+  --c-grad-end: #3498DB;
+  --c-accent: #A66BBE;
+  --bg-dark: #0a0a0f;
+  --text-primary: #f0f0f5;
+  --text-secondary: #d0d0dd;
+}
+
+html { scroll-behavior: auto; }
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== PARTICLE CANVAS ===== */
+#particles {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+}
+#gradientBg {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+  opacity: 0.4; transition: background 1.5s ease;
+  background: radial-gradient(ellipse at 30% 50%, rgba(155,89,182,0.3) 0%, transparent 70%);
+}
+
+/* ===== SIDE NAV ===== */
+#side-nav {
+  position: fixed; left: 24px; top: 50%;
+  transform: translateY(-50%);
+  z-index: 100; display: flex;
+  flex-direction: column; align-items: center; gap: 0;
+}
+#side-nav .nav-line {
+  width: 2px; height: 28px;
+  background: rgba(255,255,255,0.12);
+  transition: background 0.4s;
+}
+#side-nav .nav-line.active { background: rgba(155,89,182,0.6); }
+#side-nav .nav-dot {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 11px; cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.15);
+  background: rgba(10,10,15,0.85);
+  backdrop-filter: blur(10px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative; color: var(--text-secondary);
+}
+#side-nav .nav-dot:hover {
+  transform: scale(1.12);
+  border-color: rgba(255,255,255,0.5);
+}
+#side-nav .nav-dot.active {
+  transform: scale(1.18);
+  border-color: var(--c-purple);
+  box-shadow: 0 0 18px rgba(155,89,182,0.5);
+  background: rgba(155,89,182,0.15);
+  color: #fff;
+}
+#side-nav .nav-dot .label {
+  position: absolute; left: 52px; white-space: nowrap;
+  font-size: 11px; font-weight: 500;
+  color: var(--text-secondary);
+  opacity: 0; transform: translateX(-8px);
+  transition: all 0.3s; pointer-events: none;
+}
+#side-nav .nav-dot:hover .label,
+#side-nav .nav-dot.active .label {
+  opacity: 1; transform: translateX(0); color: var(--text-primary);
+}
+
+/* ===== HERO ===== */
+.hero {
+  height: 100vh; display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  text-align: center; position: relative; z-index: 1; padding: 0 20px;
+}
+.hero-chapter {
+  font-size: clamp(13px, 1.8vw, 16px); font-weight: 400;
+  color: var(--text-secondary); letter-spacing: 6px;
+  text-transform: uppercase; margin-bottom: 20px;
+}
+.hero-title {
+  font-size: clamp(34px, 6.5vw, 72px); font-weight: 900;
+  line-height: 1.15; margin-bottom: 28px;
+  background: linear-gradient(135deg, var(--c-purple), var(--c-blue));
+  background-size: 200% 200%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradShift 5s ease infinite;
+}
+@keyframes gradShift {
+  0%,100%{background-position:0% 50%}50%{background-position:100% 50%}
+}
+.hero-desc {
+  font-size: clamp(15px, 2vw, 19px); font-weight: 300;
+  color: var(--text-secondary); max-width: 680px; line-height: 1.85; margin-bottom: 50px;
+}
+.hero-oneliner {
+  display: inline-block; padding: 10px 28px; border-radius: 50px;
+  background: rgba(155,89,182,0.12); border: 1px solid rgba(155,89,182,0.3);
+  font-size: 14px; font-weight: 500; color: var(--c-accent);
+  margin-bottom: 40px; backdrop-filter: blur(8px);
+}
+.scroll-indicator {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  animation: float 2s ease-in-out infinite;
+}
+.scroll-indicator span { font-size: 13px; color: var(--text-secondary); letter-spacing: 3px; }
+.scroll-arrow {
+  width: 22px; height: 22px;
+  border-right: 2px solid var(--text-secondary);
+  border-bottom: 2px solid var(--text-secondary);
+  transform: rotate(45deg);
+}
+@keyframes float { 0%,100%{transform:translateY(0)}50%{transform:translateY(10px)} }
+
+/* ===== CONTENT SECTIONS ===== */
+.content-section {
+  min-height: 100vh; position: relative; z-index: 1; padding: 100px 0;
+}
+.content-section .container {
+  max-width: 1100px; margin: 0 auto; padding: 0 80px 0 110px;
+}
+.section-badge {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 6px 20px; border-radius: 50px;
+  font-size: 13px; font-weight: 500; letter-spacing: 2px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(155,89,182,0.25);
+  background: rgba(155,89,182,0.06);
+  backdrop-filter: blur(10px); color: var(--c-accent);
+}
+.section-badge .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--c-purple);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.3)} }
+
+.section-title {
+  font-size: clamp(28px, 4.5vw, 48px); font-weight: 900;
+  line-height: 1.2; margin-bottom: 16px;
+  background: linear-gradient(135deg, var(--c-purple), var(--c-blue));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.section-summary {
+  font-size: clamp(15px, 1.8vw, 18px); font-weight: 300;
+  color: var(--text-secondary); line-height: 1.8;
+  max-width: 800px; margin-bottom: 50px;
+}
+.sub-heading {
+  font-size: clamp(18px, 2.5vw, 26px); font-weight: 700;
+  margin: 50px 0 16px; color: var(--text-primary);
+}
+.sub-desc {
+  font-size: 15px; color: var(--text-secondary);
+  line-height: 1.85; margin-bottom: 28px; max-width: 780px;
+}
+.body-text {
+  font-size: 15px; color: var(--text-secondary);
+  line-height: 1.85; margin-bottom: 24px; max-width: 780px;
+}
+.body-text strong { color: var(--text-primary); font-weight: 600; }
+
+/* ===== CARDS ===== */
+.concept-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px; padding: 32px; margin-bottom: 20px;
+  backdrop-filter: blur(20px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative; overflow: hidden;
+}
+.concept-card::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 4px; height: 100%; border-radius: 4px 0 0 4px;
+  background: linear-gradient(to bottom, var(--c-purple), var(--c-blue));
+}
+.concept-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(155,89,182,0.25);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.concept-card .card-label {
+  font-size: 12px; font-weight: 600; letter-spacing: 1.5px;
+  color: var(--c-accent); margin-bottom: 8px; text-transform: uppercase;
+}
+.concept-card .card-title {
+  font-size: clamp(17px, 2.2vw, 22px); font-weight: 700; margin-bottom: 12px;
+}
+.concept-card .card-desc {
+  font-size: 14px; font-weight: 300; color: var(--text-secondary); line-height: 1.75;
+}
+
+/* ===== DATA TABLE ===== */
+.data-table {
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  margin: 30px 0; font-size: 14px;
+}
+.data-table thead th {
+  padding: 14px 18px; text-align: left; font-weight: 700;
+  font-size: 12px; letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-secondary);
+}
+.data-table tbody td {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-weight: 400; color: var(--text-secondary);
+}
+.data-table tbody td strong { color: var(--text-primary); }
+.data-table tbody tr { transition: background 0.3s; }
+.data-table tbody tr:hover { background: rgba(155,89,182,0.05); }
+
+/* ===== QUOTE BOX ===== */
+.quote-box {
+  padding: 28px 36px; border-left: 3px solid var(--c-purple);
+  background: rgba(155,89,182,0.04); border-radius: 0 16px 16px 0;
+  margin: 36px 0; font-size: 16px; font-weight: 400; line-height: 1.75;
+  color: var(--text-secondary);
+}
+.quote-box strong { color: var(--text-primary); }
+
+/* ===== INTERACTIVE: RNN vs Transformer ===== */
+.viz-container {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px; padding: 36px; margin: 36px 0;
+  position: relative; overflow: hidden;
+}
+.viz-title {
+  font-size: 15px; font-weight: 700; margin-bottom: 24px;
+  color: var(--c-accent); letter-spacing: 1px;
+}
+.viz-row {
+  display: flex; gap: 32px; flex-wrap: wrap; justify-content: center;
+}
+.viz-half {
+  flex: 1; min-width: 280px; text-align: center;
+}
+.viz-half h4 {
+  font-size: 16px; font-weight: 700; margin-bottom: 16px;
+}
+
+/* RNN vs Transformer SVG area */
+.anim-box {
+  width: 100%; height: 180px; position: relative;
+  border-radius: 12px; background: rgba(0,0,0,0.3);
+  overflow: hidden; margin-bottom: 12px;
+}
+.anim-box canvas { width: 100%; height: 100%; }
+.viz-caption {
+  font-size: 13px; color: var(--text-secondary); line-height: 1.6;
+}
+
+/* ===== MoE Interactive ===== */
+.moe-diagram {
+  display: flex; align-items: center; justify-content: center;
+  gap: 20px; flex-wrap: wrap; padding: 20px 0;
+}
+.moe-router {
+  width: 90px; height: 90px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--c-purple), var(--c-blue));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #fff; cursor: pointer;
+  transition: all 0.4s; box-shadow: 0 0 20px rgba(155,89,182,0.3);
+  text-align: center; line-height: 1.3;
+}
+.moe-router:hover { transform: scale(1.08); box-shadow: 0 0 30px rgba(155,89,182,0.5); }
+.moe-arrows {
+  display: flex; flex-direction: column; gap: 8px; align-items: center;
+}
+.moe-arrow-line {
+  width: 50px; height: 2px; position: relative;
+  transition: all 0.5s;
+}
+.moe-arrow-line::after {
+  content: ''; position: absolute; right: -4px; top: -3px;
+  width: 0; height: 0;
+  border-left: 6px solid rgba(255,255,255,0.3);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transition: border-color 0.5s;
+}
+.moe-experts {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.moe-expert {
+  width: 120px; padding: 12px 8px; border-radius: 12px;
+  border: 2px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  text-align: center; font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all 0.5s;
+  color: var(--text-secondary);
+}
+.moe-expert.active {
+  border-color: var(--c-purple);
+  background: rgba(155,89,182,0.15);
+  box-shadow: 0 0 15px rgba(155,89,182,0.3);
+  color: #fff; transform: scale(1.05);
+}
+.moe-expert .expert-icon { font-size: 22px; margin-bottom: 4px; display: block; }
+.moe-input-box {
+  width: 100px; padding: 14px 8px; border-radius: 12px;
+  border: 2px solid rgba(52,152,219,0.4);
+  background: rgba(52,152,219,0.08);
+  text-align: center; font-size: 12px; font-weight: 600;
+  color: var(--c-blue); cursor: pointer;
+  transition: all 0.4s;
+}
+.moe-input-box:hover { background: rgba(52,152,219,0.15); transform: scale(1.05); }
+.moe-status {
+  text-align: center; margin-top: 16px;
+  font-size: 13px; color: var(--text-secondary);
+  min-height: 20px; transition: all 0.3s;
+}
+
+/* ===== Scaling Chart ===== */
+.scaling-chart {
+  width: 100%; height: 320px; position: relative;
+  margin: 30px 0;
+}
+.scaling-chart canvas { width: 100%; height: 100%; }
+
+/* ===== Context Window Bars ===== */
+.ctx-bars { margin: 30px 0; }
+.ctx-bar-row {
+  display: flex; align-items: center; margin-bottom: 14px; gap: 14px;
+}
+.ctx-label {
+  font-size: 13px; font-weight: 500; width: 130px;
+  text-align: right; flex-shrink: 0; color: var(--text-secondary);
+}
+.ctx-track {
+  flex: 1; height: 40px; background: rgba(255,255,255,0.04);
+  border-radius: 10px; overflow: hidden; position: relative;
+}
+.ctx-fill {
+  height: 100%; border-radius: 10px; width: 0;
+  display: flex; align-items: center; justify-content: flex-end;
+  padding-right: 14px; font-size: 13px; font-weight: 700; color: #fff;
+  position: relative; transition: width 0s;
+}
+.ctx-fill::after {
+  content: ''; position: absolute; right: 0; top: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent 80%, rgba(255,255,255,0.12));
+  border-radius: 10px;
+}
+.ctx-sublabel {
+  font-size: 11px; color: var(--text-secondary); margin-left: 10px;
+  flex-shrink: 0; width: 140px;
+}
+
+/* ===== Multimodal Diagram ===== */
+.mm-diagram {
+  display: flex; align-items: center; justify-content: center;
+  gap: 16px; flex-wrap: wrap; padding: 20px 0;
+}
+.mm-col {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.mm-item {
+  padding: 12px 16px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  font-size: 13px; font-weight: 500;
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer; transition: all 0.4s;
+  color: var(--text-secondary);
+}
+.mm-item:hover, .mm-item.active {
+  border-color: var(--c-purple);
+  background: rgba(155,89,182,0.12);
+  color: #fff; transform: scale(1.04);
+}
+.mm-item .mm-icon { font-size: 20px; }
+.mm-brain {
+  width: 100px; height: 100px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--c-purple), var(--c-blue));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px;
+  box-shadow: 0 0 30px rgba(155,89,182,0.3), 0 0 60px rgba(52,152,219,0.15);
+  animation: brainPulse 3s ease-in-out infinite;
+}
+@keyframes brainPulse {
+  0%,100%{box-shadow:0 0 30px rgba(155,89,182,0.3)}
+  50%{box-shadow:0 0 50px rgba(155,89,182,0.5), 0 0 80px rgba(52,152,219,0.2)}
+}
+.mm-arrows-in, .mm-arrows-out {
+  display: flex; flex-direction: column; gap: 6px; align-items: center;
+}
+.mm-arrow { font-size: 20px; color: var(--c-accent); }
+
+/* ===== Comparison Table ===== */
+.compare-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px; margin: 30px 0;
+}
+.compare-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px; padding: 28px;
+  transition: all 0.4s;
+}
+.compare-card:hover {
+  border-color: rgba(155,89,182,0.2);
+  transform: translateY(-3px);
+}
+.compare-card h4 {
+  font-size: 16px; font-weight: 700; margin-bottom: 12px;
+  color: var(--c-accent);
+}
+.compare-card p {
+  font-size: 14px; color: var(--text-secondary); line-height: 1.7;
+}
+
+/* ===== RLHF vs DPO flow ===== */
+.flow-diagram {
+  display: flex; gap: 12px; align-items: center;
+  flex-wrap: wrap; justify-content: center; margin: 20px 0;
+}
+.flow-step {
+  padding: 10px 18px; border-radius: 10px;
+  border: 1px solid rgba(155,89,182,0.3);
+  background: rgba(155,89,182,0.06);
+  font-size: 13px; font-weight: 600;
+  color: var(--c-accent); text-align: center;
+  transition: all 0.3s;
+}
+.flow-step.highlight {
+  background: rgba(155,89,182,0.2);
+  border-color: var(--c-purple);
+  color: #fff;
+}
+.flow-arrow { font-size: 18px; color: rgba(255,255,255,0.3); }
+
+/* ===== Paradigm Shift Cards ===== */
+.paradigm-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px; margin: 30px 0;
+}
+.paradigm-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px; padding: 24px; text-align: center;
+  transition: all 0.4s;
+}
+.paradigm-card:hover {
+  border-color: rgba(155,89,182,0.25);
+  transform: translateY(-4px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+.paradigm-card .p-icon { font-size: 32px; margin-bottom: 10px; }
+.paradigm-card .p-before {
+  font-size: 12px; color: rgba(255,255,255,0.4);
+  text-decoration: line-through; margin-bottom: 4px;
+}
+.paradigm-card .p-after {
+  font-size: 14px; font-weight: 700; color: var(--c-accent);
+}
+.paradigm-card .p-label {
+  font-size: 11px; color: var(--text-secondary); margin-top: 8px;
+}
+
+/* ===== SLM Cards ===== */
+.slm-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px; margin: 30px 0;
+}
+.slm-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px; padding: 24px;
+  transition: all 0.4s;
+}
+.slm-card:hover {
+  border-color: rgba(52,152,219,0.3);
+  transform: translateY(-3px);
+}
+.slm-card .slm-name {
+  font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--text-primary);
+}
+.slm-card .slm-company {
+  font-size: 12px; color: var(--c-accent); margin-bottom: 8px;
+}
+.slm-card .slm-param {
+  font-size: 24px; font-weight: 900; margin-bottom: 6px;
+  background: linear-gradient(135deg, var(--c-purple), var(--c-blue));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.slm-card .slm-strength {
+  font-size: 13px; color: var(--text-secondary); line-height: 1.6;
+}
+
+/* ===== Benchmark Timeline ===== */
+.bench-timeline { margin: 30px 0; }
+.bench-row {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 12px;
+}
+.bench-year {
+  font-size: 13px; font-weight: 700; width: 60px;
+  text-align: right; flex-shrink: 0; color: var(--c-accent);
+}
+.bench-track {
+  flex: 1; height: 32px; background: rgba(255,255,255,0.04);
+  border-radius: 8px; overflow: hidden; position: relative;
+}
+.bench-fill {
+  height: 100%; border-radius: 8px; width: 0;
+  display: flex; align-items: center; padding-left: 12px;
+  font-size: 12px; font-weight: 600; color: #fff;
+}
+.bench-model {
+  font-size: 12px; color: var(--text-secondary);
+  width: 100px; flex-shrink: 0;
+}
+
+/* ===== Speed Cards ===== */
+.speed-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px; margin: 30px 0;
+}
+.speed-card {
+  padding: 24px; border-radius: 16px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  text-align: center; transition: all 0.4s;
+}
+.speed-card:hover { transform: translateY(-4px); box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
+.speed-card .sp-val {
+  font-size: 28px; font-weight: 900; margin-bottom: 4px;
+  background: linear-gradient(135deg, var(--c-purple), var(--c-blue));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.speed-card .sp-label {
+  font-size: 13px; color: var(--text-secondary);
+}
+
+/* ===== Section Divider ===== */
+.section-divider {
+  height: 160px; display: flex; align-items: center;
+  justify-content: center; position: relative; z-index: 1;
+}
+.divider-line {
+  width: 1px; height: 80px;
+  background: linear-gradient(to bottom, transparent, rgba(155,89,182,0.3), transparent);
+}
+
+/* ===== Footer Nav ===== */
+.footer-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 60px 40px; position: relative; z-index: 1;
+  max-width: 1100px; margin: 0 auto;
+}
+.footer-nav a {
+  color: var(--c-accent); text-decoration: none;
+  font-size: 15px; font-weight: 500;
+  padding: 12px 24px; border-radius: 12px;
+  border: 1px solid rgba(155,89,182,0.3);
+  background: rgba(155,89,182,0.06);
+  transition: all 0.3s;
+}
+.footer-nav a:hover {
+  background: rgba(155,89,182,0.15);
+  border-color: var(--c-purple);
+  transform: translateY(-2px);
+}
+.footer {
+  text-align: center; padding: 40px 20px 60px;
+  position: relative; z-index: 1;
+}
+.footer p { font-size: 13px; color: var(--text-secondary); line-height: 1.8; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  #side-nav { left: 8px; }
+  #side-nav .nav-dot { width: 32px; height: 32px; font-size: 9px; }
+  #side-nav .nav-dot .label { display: none; }
+  #side-nav .nav-line { height: 16px; }
+  .content-section .container { padding: 0 16px 0 56px; }
+  .viz-row { flex-direction: column; }
+  .compare-grid { grid-template-columns: 1fr; }
+  .moe-diagram { flex-direction: column; }
+  .mm-diagram { flex-direction: column; }
+  .paradigm-grid { grid-template-columns: 1fr 1fr; }
+  .footer-nav { padding: 40px 20px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div id="gradientBg"></div>
+
+<!-- SIDE NAV -->
+<nav id="side-nav">
+  <div class="nav-dot" data-sec="hero" onclick="smoothScroll('hero')">TOP<span class="label">처음으로</span></div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-sec="s21" onclick="smoothScroll('s21')">2.1<span class="label">Transformer & Attention</span></div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-sec="s22" onclick="smoothScroll('s22')">2.2<span class="label">MoE</span></div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-sec="s23" onclick="smoothScroll('s23')">2.3<span class="label">RLHF & DPO</span></div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-sec="s24" onclick="smoothScroll('s24')">2.4<span class="label">추론 시간 컴퓨팅</span></div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-sec="s25" onclick="smoothScroll('s25')">2.5<span class="label">컨텍스트 윈도우</span></div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-sec="s26" onclick="smoothScroll('s26')">2.6<span class="label">SLM</span></div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-sec="s27" onclick="smoothScroll('s27')">2.7<span class="label">멀티모달</span></div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-sec="s28" onclick="smoothScroll('s28')">2.8<span class="label">스케일링 법칙</span></div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-sec="s29" onclick="smoothScroll('s29')">2.9<span class="label">발전 속도</span></div>
+  <div class="nav-line"></div>
+  <div class="nav-dot" data-sec="s210" onclick="smoothScroll('s210')">2.10<span class="label">정리</span></div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero" id="hero">
+  <div class="hero-chapter">Chapter 02</div>
+  <div class="hero-oneliner">AI의 핵심 기술 원리를 이해하고, "더 크게"에서 "더 스마트하게"로의 전환을 파악한다</div>
+  <h1 class="hero-title">AI는 어떻게<br>생각하는가</h1>
+  <p class="hero-desc">ChatGPT에 질문을 던지면 마치 사람처럼 유창한 답변이 돌아옵니다. 하지만 그 안에서는 정교한 수학적 연산이 초당 수십억 번씩 일어나고 있습니다. 이 장에서는 그 연산의 본질, AI를 "똑똑하게" 만드는 핵심 기술들을 하나씩 풀어보겠습니다.</p>
+  <div class="scroll-indicator">
+    <span>SCROLL</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- ===================== 2.1 Transformer ===================== -->
+<section class="content-section" id="s21">
+  <div class="container">
+    <div class="section-badge"><div class="dot"></div>SECTION 2.1</div>
+    <h2 class="section-title">Transformer와 Attention</h2>
+    <p class="section-summary">AI에게 "눈"을 준 기술 -- 2017년 Google "Attention Is All You Need" 논문에서 탄생</p>
+
+    <div class="sub-heading">도서관 사서 vs 인덱스 검색</div>
+    <p class="body-text"><strong>예전 방식(RNN)</strong>은 서가를 맨 처음부터 한 권씩 넘기는 것과 같았습니다. 100번째 책을 볼 때쯤이면 처음에 봤던 좋은 자료의 내용은 이미 희미해지죠. 앞의 정보가 뒤로 갈수록 사라지는 "기억력 한계"가 있었습니다.</p>
+    <p class="body-text"><strong>Transformer의 Attention</strong>은 완전히 다릅니다. 도서관 전체에 걸친 <strong>인덱스 검색 시스템</strong>을 갖춘 것과 같습니다. "이 단어와 가장 관련 있는 단어는 어디에 있지?"라고 묻는 순간, 전체를 한 번에 검색합니다. 게다가 이 검색을 <strong>동시에 병렬로</strong> 수행할 수 있어서, GPU를 최대한 활용해 학습 속도가 비약적으로 빨라졌습니다.</p>
+
+    <!-- RNN vs Transformer Animation -->
+    <div class="viz-container" id="rnn-transformer-viz">
+      <div class="viz-title">RNN vs Transformer 처리 방식 비교</div>
+      <div class="viz-row">
+        <div class="viz-half">
+          <h4 style="color:#e74c3c;">RNN (순차 처리)</h4>
+          <div class="anim-box" id="rnn-anim"></div>
+          <p class="viz-caption">단어를 한 개씩 순서대로 처리<br>앞의 정보가 점점 희미해짐</p>
+        </div>
+        <div class="viz-half">
+          <h4 style="color:#2ecc71;">Transformer (병렬 처리)</h4>
+          <div class="anim-box" id="transformer-anim"></div>
+          <p class="viz-caption">모든 단어 관계를 동시에 계산<br>어떤 거리든 즉시 참조 가능</p>
+        </div>
+      </div>
+      <div style="text-align:center; margin-top:16px;">
+        <button onclick="restartRnnTransformer()" style="padding:8px 24px; border-radius:8px; border:1px solid rgba(155,89,182,0.4); background:rgba(155,89,182,0.1); color:var(--c-accent); cursor:pointer; font-family:inherit; font-size:13px; font-weight:600; transition:all 0.3s;">다시 재생</button>
+      </div>
+    </div>
+
+    <div class="sub-heading">Transformer의 세 가지 핵심 혁신</div>
+
+    <div class="concept-card">
+      <div class="card-label">핵심 1</div>
+      <div class="card-title">Self-Attention (자기 주의 메커니즘)</div>
+      <div class="card-desc">문장 내 모든 단어가 다른 모든 단어와의 관련성을 동시에 계산합니다. "은행에서 돈을 인출했다"에서 "은행"은 강둑일까요, 금융기관일까요? Self-Attention은 "돈", "인출"이라는 주변 단어와의 관계를 파악하여 금융기관이라는 의미를 정확히 잡아냅니다.</div>
+    </div>
+    <div class="concept-card">
+      <div class="card-label">핵심 2</div>
+      <div class="card-title">병렬 처리</div>
+      <div class="card-desc">이전의 순차 처리 방식(RNN/LSTM)은 단어를 한 개씩 읽어야 했습니다. Transformer는 문장의 모든 단어를 <strong>동시에</strong> 처리합니다. 한 명이 줄지어 서류를 처리하는 것과, 열 명이 나눠서 동시에 처리하는 것의 차이입니다.</div>
+    </div>
+    <div class="concept-card">
+      <div class="card-label">핵심 3</div>
+      <div class="card-title">Multi-Head Attention</div>
+      <div class="card-desc">하나의 관점이 아닌 여러 개의 "머리(Head)"가 각각 다른 관점에서 관련성을 분석합니다. 한 Head는 문법적 관계에 주목하고, 다른 Head는 의미적 유사성에 집중하는 식입니다. 마치 여러 전문가가 같은 문서를 서로 다른 관점에서 동시에 분석하는 것과 같습니다.</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== 2.2 MoE ===================== -->
+<section class="content-section" id="s22">
+  <div class="container">
+    <div class="section-badge"><div class="dot"></div>SECTION 2.2</div>
+    <h2 class="section-title">MoE (Mixture of Experts)</h2>
+    <p class="section-summary">종합병원의 지혜 -- 큰 병원의 전문성을 유지하면서 작은 의원의 효율성을 동시에 얻다</p>
+
+    <p class="body-text">병원에는 내과, 외과, 안과, 피부과 등 수십 명의 전문의가 있습니다. 하지만 감기 환자가 오면 내과 의사 한 명만 진료하면 됩니다. 전체 병원의 규모는 거대하지만, 한 환자를 치료하는 데 실제로 일하는 의사는 소수입니다.</p>
+
+    <!-- Interactive MoE -->
+    <div class="viz-container">
+      <div class="viz-title">MoE 전문가 라우팅 시뮬레이션 (클릭해보세요)</div>
+      <div class="moe-diagram" id="moe-interactive">
+        <div>
+          <div class="moe-input-box" onclick="routeMoE('code')">코딩 질문</div>
+          <div class="moe-input-box" style="margin-top:10px; border-color:rgba(155,89,182,0.4); background:rgba(155,89,182,0.08); color:var(--c-purple);" onclick="routeMoE('math')">수학 문제</div>
+          <div class="moe-input-box" style="margin-top:10px; border-color:rgba(0,212,170,0.4); background:rgba(0,212,170,0.08); color:#00D4AA;" onclick="routeMoE('lang')">번역 요청</div>
+        </div>
+        <div class="moe-arrows" id="moe-arrows">
+          <div class="moe-arrow-line" style="background:rgba(255,255,255,0.15);"></div>
+          <div class="moe-arrow-line" style="background:rgba(255,255,255,0.15);"></div>
+          <div class="moe-arrow-line" style="background:rgba(255,255,255,0.15);"></div>
+          <div class="moe-arrow-line" style="background:rgba(255,255,255,0.15);"></div>
+        </div>
+        <div class="moe-router" onclick="routeMoE('random')">Router<br>(라우터)</div>
+        <div class="moe-arrows" id="moe-arrows-out">
+          <div class="moe-arrow-line" style="background:rgba(255,255,255,0.15);"></div>
+          <div class="moe-arrow-line" style="background:rgba(255,255,255,0.15);"></div>
+          <div class="moe-arrow-line" style="background:rgba(255,255,255,0.15);"></div>
+          <div class="moe-arrow-line" style="background:rgba(255,255,255,0.15);"></div>
+        </div>
+        <div class="moe-experts" id="moe-experts">
+          <div class="moe-expert" data-type="code"><span class="expert-icon">&#128187;</span>코딩 전문가</div>
+          <div class="moe-expert" data-type="math"><span class="expert-icon">&#128202;</span>수학 전문가</div>
+          <div class="moe-expert" data-type="lang"><span class="expert-icon">&#127760;</span>언어 전문가</div>
+          <div class="moe-expert" data-type="general"><span class="expert-icon">&#128218;</span>일반 지식</div>
+        </div>
+      </div>
+      <div class="moe-status" id="moe-status">입력 유형을 클릭하면 라우터가 적합한 전문가를 활성화합니다</div>
+    </div>
+
+    <div class="sub-heading">MoE의 구조</div>
+    <table class="data-table">
+      <thead><tr><th>구성 요소</th><th>역할</th><th>비유</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Expert (전문가)</strong></td><td>특정 유형의 입력을 처리하는 독립적인 신경망</td><td>각 진료과의 전문의</td></tr>
+        <tr><td><strong>Router (라우터)</strong></td><td>입력을 어떤 Expert에게 보낼지 결정</td><td>접수 창구의 간호사</td></tr>
+        <tr><td><strong>Gating Network</strong></td><td>Expert 선택 확률을 계산</td><td>증상에 따른 진료과 배정 시스템</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sub-heading">실제 적용 사례</div>
+    <table class="data-table">
+      <thead><tr><th>모델</th><th>총 파라미터</th><th>활성 파라미터</th><th>활성 비율</th></tr></thead>
+      <tbody>
+        <tr><td><strong>GPT-4</strong> (추정)</td><td>~1.7T</td><td>~220B (8개 Expert)</td><td style="color:var(--c-accent);">~13%</td></tr>
+        <tr><td><strong>DeepSeek-V3.2</strong></td><td>685B</td><td>37B</td><td style="color:var(--c-accent);">~5.4%</td></tr>
+        <tr><td><strong>LLaMA 4 Scout</strong></td><td>109B (16개 Expert)</td><td>17B</td><td style="color:var(--c-accent);">~15.6%</td></tr>
+        <tr><td><strong>Qwen 3.5</strong></td><td>397B</td><td>17B</td><td style="color:var(--c-accent);">~4.3%</td></tr>
+      </tbody>
+    </table>
+
+    <div class="quote-box">DeepSeek-V3.2는 전체 파라미터의 <strong>5.4%만 활성화</strong>합니다. 685B의 지식 용량을 갖추면서도, 실제 추론 비용은 37B 모델 수준이라는 뜻입니다. 이것이 MoE가 현재 AI 업계의 주류 아키텍처가 된 이유입니다.</div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== 2.3 RLHF & DPO ===================== -->
+<section class="content-section" id="s23">
+  <div class="container">
+    <div class="section-badge"><div class="dot"></div>SECTION 2.3</div>
+    <h2 class="section-title">AI를 "착하게" 만드는 기술</h2>
+    <p class="section-summary">RLHF에서 DPO로 -- 요리 학교의 두 가지 교육 방식</p>
+
+    <p class="body-text">AI 모델은 방대한 인터넷 데이터를 학습합니다. 그래서 사전 학습만으로는 유해한 내용을 생성하거나, 질문과 동떨어진 답변을 할 수 있습니다. <strong>"정렬(Alignment)"</strong>은 AI를 사람의 선호도와 가치관에 맞추는 핵심 과정입니다.</p>
+
+    <div class="compare-grid">
+      <div class="compare-card">
+        <h4>RLHF (보상 모델 기반)</h4>
+        <p>먼저 "음식 평론가"를 양성합니다. 이 평론가에게 좋은 요리와 나쁜 요리를 보여주며 판별 기준을 가르칩니다. 그다음, 요리사(AI)가 요리를 만들 때마다 평론가가 점수를 매기고, 요리사는 그 점수를 보고 실력을 개선합니다. 효과적이지만, 평론가를 따로 양성해야 하므로 시스템이 복잡합니다.</p>
+      </div>
+      <div class="compare-card">
+        <h4>DPO (직접 선호 최적화)</h4>
+        <p>평론가 없이, 요리사에게 직접 "A 요리와 B 요리 중 A가 더 낫다"는 비교 데이터를 줍니다. 요리사는 비교를 통해 스스로 무엇이 좋은 요리인지 학습합니다. 더 단순하고, 더 안정적이며, 더 저렴합니다.</p>
+      </div>
+    </div>
+
+    <div class="sub-heading">학습 파이프라인 비교</div>
+    <p class="body-text" style="margin-bottom:8px; font-size:13px; color:var(--c-accent);">RLHF: 3단계</p>
+    <div class="flow-diagram">
+      <div class="flow-step">SFT<br><span style="font-size:11px;color:var(--text-secondary);">지도 미세조정</span></div>
+      <div class="flow-arrow">&#10132;</div>
+      <div class="flow-step highlight">보상 모델<br><span style="font-size:11px;color:var(--text-secondary);">평론가 양성</span></div>
+      <div class="flow-arrow">&#10132;</div>
+      <div class="flow-step highlight">PPO<br><span style="font-size:11px;color:var(--text-secondary);">강화학습</span></div>
+    </div>
+    <p class="body-text" style="margin-bottom:8px; margin-top:20px; font-size:13px; color:var(--c-accent);">DPO: 2단계</p>
+    <div class="flow-diagram">
+      <div class="flow-step">SFT<br><span style="font-size:11px;color:var(--text-secondary);">지도 미세조정</span></div>
+      <div class="flow-arrow">&#10132;</div>
+      <div class="flow-step" style="border-color:rgba(52,152,219,0.4); background:rgba(52,152,219,0.1); color:var(--c-blue);">DPO<br><span style="font-size:11px;color:var(--text-secondary);">직접 선호 최적화</span></div>
+    </div>
+
+    <div class="sub-heading">RLHF vs DPO 비교</div>
+    <table class="data-table">
+      <thead><tr><th>비교 항목</th><th>RLHF</th><th>DPO</th></tr></thead>
+      <tbody>
+        <tr><td><strong>핵심 방식</strong></td><td>보상 모델 학습 후 강화학습으로 최적화</td><td>선호도 데이터로 직접 모델 최적화</td></tr>
+        <tr><td><strong>학습 단계</strong></td><td>3단계 (SFT &rarr; 보상 모델 &rarr; PPO)</td><td>2단계 (SFT &rarr; DPO)</td></tr>
+        <tr><td><strong>안정성</strong></td><td>불안정할 수 있음 (보상 해킹 등)</td><td>더 안정적</td></tr>
+        <tr><td><strong>계산 비용</strong></td><td>높음 (보상 모델 + 강화학습)</td><td>낮음 (분류 손실 함수만 사용)</td></tr>
+        <tr><td><strong>대표 적용</strong></td><td>GPT-4, Claude 초기 버전</td><td>Claude 후기 버전, LLaMA 2+</td></tr>
+      </tbody>
+    </table>
+
+    <div class="quote-box">업계의 흐름은 분명합니다. 더 단순하고, 더 안정적이며, 더 저렴한 <strong>DPO 방향</strong>으로 이동하고 있습니다.</div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== 2.4 추론 시간 컴퓨팅 ===================== -->
+<section class="content-section" id="s24">
+  <div class="container">
+    <div class="section-badge"><div class="dot"></div>SECTION 2.4</div>
+    <h2 class="section-title">추론 시간 컴퓨팅</h2>
+    <p class="section-summary">"생각하는 AI"의 등장 -- 2024년 9월 OpenAI o1 모델에서 처음 대중적으로 도입</p>
+
+    <p class="body-text">수학 시험을 본다고 상상해보세요. 기존 AI는 문제를 보자마자 바로 답을 적었습니다. 빠르지만 복잡한 문제에서 실수가 잦았죠. 추론 시간 컴퓨팅은 <strong>"잠깐, 이 문제를 단계별로 풀어보자"</strong>라고 스스로 생각하는 것입니다. 연습장에 풀이 과정을 쓰고, 틀린 부분을 발견하면 수정하고, 최종 답을 확인한 뒤 제출합니다.</p>
+
+    <div class="sub-heading">작동 원리</div>
+    <div class="concept-card">
+      <div class="card-label">Step 1</div>
+      <div class="card-title">체인 오브 소트 (Chain of Thought)</div>
+      <div class="card-desc">모델이 답변을 생성하기 전, 내부적으로 사고 과정을 거칩니다.</div>
+    </div>
+    <div class="concept-card">
+      <div class="card-label">Step 2</div>
+      <div class="card-title">문제 분해 & 다중 접근</div>
+      <div class="card-desc">문제를 분해하고, 여러 접근법을 시도하고, 자체적으로 오류를 검증합니다.</div>
+    </div>
+    <div class="concept-card">
+      <div class="card-label">Step 3</div>
+      <div class="card-title">강화학습 기반 사고 조절</div>
+      <div class="card-desc">강화학습(RL)을 통해 "언제, 얼마나 깊이 생각할지"를 학습합니다. o3-mini의 경우 low/medium/high 세 가지 사고 노력 수준을 API에서 직접 지정할 수 있습니다.</div>
+    </div>
+
+    <div class="sub-heading">패러다임 전환: 두 개의 스케일링 축</div>
+    <div class="compare-grid">
+      <div class="compare-card" style="border-color: rgba(155,89,182,0.2);">
+        <h4 style="color:var(--c-purple);">학습 시간 스케일링</h4>
+        <p>모델을 더 크게, 더 많은 데이터로 학습하면 성능이 오른다</p>
+      </div>
+      <div class="compare-card" style="border-color: rgba(52,152,219,0.2);">
+        <h4 style="color:var(--c-blue);">추론 시간 스케일링</h4>
+        <p>같은 모델이라도 추론 시 더 많은 연산을 투입하면 성능이 오른다</p>
+      </div>
+    </div>
+    <div class="quote-box">이 두 축이 합쳐지면서, <strong>"더 큰 모델" 시대에서 "더 똑똑한 모델" 시대</strong>로의 전환이 이루어졌습니다.</div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== 2.5 컨텍스트 윈도우 ===================== -->
+<section class="content-section" id="s25">
+  <div class="container">
+    <div class="section-badge"><div class="dot"></div>SECTION 2.5</div>
+    <h2 class="section-title">컨텍스트 윈도우의 확장</h2>
+    <p class="section-summary">AI의 책상이 커진다 -- 3년 만에 2,500배 확장</p>
+
+    <p class="body-text">컨텍스트 윈도우는 AI의 <strong>작업 책상 크기</strong>와 같습니다. 4K 토큰은 A4 용지 3~4장을 올려놓을 수 있는 작은 책상, 10M 토큰은 작은 도서관의 서가 전체를 한눈에 볼 수 있는 수준입니다.</p>
+
+    <!-- Context Window Bars -->
+    <div class="ctx-bars" id="ctx-bars">
+      <div class="ctx-bar-row">
+        <div class="ctx-label">GPT-3.5 (2022)</div>
+        <div class="ctx-track"><div class="ctx-fill" data-width="2" style="background: linear-gradient(90deg, #e74c3c, #c0392b);">4K</div></div>
+        <div class="ctx-sublabel">짧은 대화, 간단한 질문</div>
+      </div>
+      <div class="ctx-bar-row">
+        <div class="ctx-label">GPT-4 (2023)</div>
+        <div class="ctx-track"><div class="ctx-fill" data-width="8" style="background: linear-gradient(90deg, #e67e22, #d35400);">32K</div></div>
+        <div class="ctx-sublabel">긴 문서 요약, 논문 분석</div>
+      </div>
+      <div class="ctx-bar-row">
+        <div class="ctx-label">Claude 2 (2023)</div>
+        <div class="ctx-track"><div class="ctx-fill" data-width="18" style="background: linear-gradient(90deg, var(--c-purple), #8e44ad);">200K</div></div>
+        <div class="ctx-sublabel">책 한 권 분석</div>
+      </div>
+      <div class="ctx-bar-row">
+        <div class="ctx-label">Gemini 1.5 (2024)</div>
+        <div class="ctx-track"><div class="ctx-fill" data-width="48" style="background: linear-gradient(90deg, var(--c-blue), #2980b9);">1M</div></div>
+        <div class="ctx-sublabel">코드베이스 전체, 영상 이해</div>
+      </div>
+      <div class="ctx-bar-row">
+        <div class="ctx-label">GPT-4.1 (2025)</div>
+        <div class="ctx-track"><div class="ctx-fill" data-width="48" style="background: linear-gradient(90deg, #3498db, #2471a3);">1M</div></div>
+        <div class="ctx-sublabel">대규모 코드 리뷰</div>
+      </div>
+      <div class="ctx-bar-row">
+        <div class="ctx-label">LLaMA 4 (2025)</div>
+        <div class="ctx-track"><div class="ctx-fill" data-width="100" style="background: linear-gradient(90deg, #00D4AA, #00b894);">10M</div></div>
+        <div class="ctx-sublabel">수년 치 문서, 책 시리즈 전체</div>
+      </div>
+    </div>
+
+    <div class="speed-grid">
+      <div class="speed-card">
+        <div class="sp-val">2,500x</div>
+        <div class="sp-label">3년간 컨텍스트 확장</div>
+      </div>
+      <div class="speed-card">
+        <div class="sp-val">10M</div>
+        <div class="sp-label">최대 토큰 (2025)</div>
+      </div>
+      <div class="speed-card">
+        <div class="sp-val">~750만</div>
+        <div class="sp-label">단어 (1M 토큰 기준)</div>
+      </div>
+    </div>
+
+    <div class="quote-box">더 이상 문서를 잘게 쪼개서 분석할 필요 없이, <strong>전체 코드베이스나 프로젝트 문서를 통째로</strong> AI에게 넘겨줄 수 있게 되었습니다.</div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== 2.6 SLM ===================== -->
+<section class="content-section" id="s26">
+  <div class="container">
+    <div class="section-badge"><div class="dot"></div>SECTION 2.6</div>
+    <h2 class="section-title">소형 모델의 반격 -- SLM</h2>
+    <p class="section-summary">작지만 강한 -- 모든 요리에 미슐랭 셰프가 필요하지는 않다 (1B~14B 파라미터)</p>
+
+    <p class="body-text">거대 모델만큼 모든 것을 잘하지는 못하지만, 특정 작업에서는 충분히 좋은 성능을 훨씬 적은 비용으로 제공합니다. 심지어 <strong>스마트폰이나 노트북에서도 작동</strong>합니다.</p>
+
+    <div class="slm-grid">
+      <div class="slm-card">
+        <div class="slm-name">Phi-4</div>
+        <div class="slm-company">Microsoft</div>
+        <div class="slm-param">14B</div>
+        <div class="slm-strength">합성 데이터로 수학/추론 능력 극대화 (GSM8K: 93.7%)</div>
+      </div>
+      <div class="slm-card">
+        <div class="slm-name">Gemma 3n</div>
+        <div class="slm-company">Google</div>
+        <div class="slm-param">~2B (유효)</div>
+        <div class="slm-strength">텍스트+이미지+오디오+비디오, 140+ 언어, 온디바이스</div>
+      </div>
+      <div class="slm-card">
+        <div class="slm-name">Qwen 2.5 시리즈</div>
+        <div class="slm-company">Alibaba</div>
+        <div class="slm-param">0.5B~72B</div>
+        <div class="slm-strength">다양한 크기 옵션, 코딩 특화 모델 포함</div>
+      </div>
+      <div class="slm-card">
+        <div class="slm-name">LLaMA 3.2</div>
+        <div class="slm-company">Meta</div>
+        <div class="slm-param">1B / 3B</div>
+        <div class="slm-strength">모바일/엣지 디바이스용 경량 모델</div>
+      </div>
+    </div>
+
+    <div class="sub-heading">SLM이 중요한 네 가지 이유</div>
+    <div class="paradigm-grid">
+      <div class="paradigm-card">
+        <div class="p-icon">&#128176;</div>
+        <div class="p-after">10~30배 저렴</div>
+        <div class="p-label">비용</div>
+      </div>
+      <div class="paradigm-card">
+        <div class="p-icon">&#9889;</div>
+        <div class="p-after">극적 지연 감소</div>
+        <div class="p-label">속도</div>
+      </div>
+      <div class="paradigm-card">
+        <div class="p-icon">&#128274;</div>
+        <div class="p-after">로컬 실행 가능</div>
+        <div class="p-label">프라이버시</div>
+      </div>
+      <div class="paradigm-card">
+        <div class="p-icon">&#127807;</div>
+        <div class="p-after">2027년 40%+ 전환</div>
+        <div class="p-label">에너지 효율</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== 2.7 멀티모달 ===================== -->
+<section class="content-section" id="s27">
+  <div class="container">
+    <div class="section-badge"><div class="dot"></div>SECTION 2.7</div>
+    <h2 class="section-title">멀티모달 통합</h2>
+    <p class="section-summary">오감을 가진 AI -- "눈만 있는 사람"에서 "오감을 가진 사람"으로</p>
+
+    <p class="body-text">이전의 AI는 감각이 하나뿐이었습니다. 텍스트 AI는 글만 읽을 수 있고, 이미지 AI는 그림만 볼 수 있었죠. 멀티모달 AI는 <strong>오감을 가진 사람</strong>처럼, 글을 읽으면서 동시에 그림을 보고, 소리를 듣고, 영상을 이해합니다.</p>
+
+    <!-- Interactive Multimodal Diagram -->
+    <div class="viz-container">
+      <div class="viz-title">멀티모달 AI 입출력 흐름 (항목을 클릭해보세요)</div>
+      <div class="mm-diagram" id="mm-diagram">
+        <div class="mm-col" id="mm-inputs">
+          <div class="mm-item" data-mm="text-in" onclick="toggleMM(this)"><span class="mm-icon">&#128196;</span> 텍스트 입력</div>
+          <div class="mm-item" data-mm="img-in" onclick="toggleMM(this)"><span class="mm-icon">&#128247;</span> 이미지 입력</div>
+          <div class="mm-item" data-mm="audio-in" onclick="toggleMM(this)"><span class="mm-icon">&#127908;</span> 오디오 입력</div>
+          <div class="mm-item" data-mm="video-in" onclick="toggleMM(this)"><span class="mm-icon">&#127909;</span> 비디오 입력</div>
+        </div>
+        <div class="mm-arrows-in">
+          <div class="mm-arrow">&#10132;</div>
+          <div class="mm-arrow">&#10132;</div>
+          <div class="mm-arrow">&#10132;</div>
+        </div>
+        <div class="mm-brain">&#129504;</div>
+        <div class="mm-arrows-out">
+          <div class="mm-arrow">&#10132;</div>
+          <div class="mm-arrow">&#10132;</div>
+          <div class="mm-arrow">&#10132;</div>
+        </div>
+        <div class="mm-col" id="mm-outputs">
+          <div class="mm-item" data-mm="text-out" onclick="toggleMM(this)"><span class="mm-icon">&#128172;</span> 텍스트 답변</div>
+          <div class="mm-item" data-mm="img-out" onclick="toggleMM(this)"><span class="mm-icon">&#127912;</span> 이미지 생성</div>
+          <div class="mm-item" data-mm="audio-out" onclick="toggleMM(this)"><span class="mm-icon">&#128266;</span> 음성 출력</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-heading">멀티모달 지원 현황 (2026년 3월 기준)</div>
+    <table class="data-table">
+      <thead><tr><th>능력</th><th>GPT-4o/5</th><th>Claude 4</th><th>Gemini 2.5</th><th>LLaMA 4</th></tr></thead>
+      <tbody>
+        <tr><td><strong>텍스트 입출력</strong></td><td style="color:#2ecc71;">O</td><td style="color:#2ecc71;">O</td><td style="color:#2ecc71;">O</td><td style="color:#2ecc71;">O</td></tr>
+        <tr><td><strong>이미지 입력</strong></td><td style="color:#2ecc71;">O</td><td style="color:#2ecc71;">O</td><td style="color:#2ecc71;">O</td><td style="color:#2ecc71;">O</td></tr>
+        <tr><td><strong>이미지 생성</strong></td><td style="color:#2ecc71;">O</td><td style="color:#e74c3c;">X</td><td style="color:#2ecc71;">O</td><td style="color:#e74c3c;">X</td></tr>
+        <tr><td><strong>오디오 입출력</strong></td><td style="color:#2ecc71;">O (네이티브)</td><td style="color:#e74c3c;">X</td><td style="color:#2ecc71;">O</td><td style="color:#e74c3c;">X</td></tr>
+        <tr><td><strong>비디오 이해</strong></td><td style="color:#2ecc71;">O</td><td style="color:#f39c12;">제한적</td><td style="color:#2ecc71;">O (네이티브)</td><td style="color:#2ecc71;">O</td></tr>
+        <tr><td><strong>실시간 대화</strong></td><td style="color:#2ecc71;">O</td><td style="color:#e74c3c;">X</td><td style="color:#2ecc71;">O</td><td style="color:#e74c3c;">X</td></tr>
+      </tbody>
+    </table>
+
+    <div class="quote-box">멀티모달 통합은 단순히 "여러 형식을 이해한다"를 넘어, <strong>입력 형식에 관계없이 통합적으로 추론하는 능력</strong>을 의미합니다.</div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== 2.8 스케일링 법칙 ===================== -->
+<section class="content-section" id="s28">
+  <div class="container">
+    <div class="section-badge"><div class="dot"></div>SECTION 2.8</div>
+    <h2 class="section-title">스케일링 법칙</h2>
+    <p class="section-summary">AI 성능 향상의 공식 -- 머리 크기 vs 공부량, 무엇이 더 중요한가</p>
+
+    <div class="concept-card">
+      <div class="card-label">2020 &middot; OpenAI</div>
+      <div class="card-title">Kaplan 스케일링 법칙</div>
+      <div class="card-desc">"머리가 좋은 학생(큰 모델)이면 교과서 조금만 읽어도 성적이 오른다." 컴퓨팅 예산이 10배 늘면, 모델 크기를 5.5배, 데이터를 1.8배 늘려야 한다. 이 법칙에 따라 GPT-3(175B 파라미터, 300B 토큰)이 탄생했습니다.</div>
+    </div>
+    <div class="concept-card">
+      <div class="card-label">2022 &middot; DeepMind</div>
+      <div class="card-title">Chinchilla 법칙</div>
+      <div class="card-desc">"머리 크기(모델)와 공부량(데이터)의 균형이 중요하다." 파라미터 1개당 약 20개의 학습 토큰이 필요하다. 실제로 70B 모델을 1.4T 토큰으로 학습시킨 Chinchilla가, 280B 모델을 300B 토큰으로 학습시킨 Gopher보다 더 좋은 성능을 보였습니다.</div>
+    </div>
+    <div class="concept-card">
+      <div class="card-label">2024~ &middot; 추론 최적화 시대</div>
+      <div class="card-title">더 작고 더 오래 학습</div>
+      <div class="card-desc">추론 시 자주 호출되는 모델은 Chinchilla 최적보다 더 작고 더 오래 학습하는 것이 효율적. Qwen3-0.6B는 600M 파라미터에 무려 36T 토큰을 학습 -- 토큰/파라미터 비율이 60,000:1.</div>
+    </div>
+
+    <div class="sub-heading">파라미터 수 증가 추세</div>
+
+    <!-- Interactive Scaling Chart -->
+    <div class="viz-container">
+      <div class="viz-title">파라미터 증가 추이 (로그 스케일)</div>
+      <div class="scaling-chart" id="scaling-chart"><canvas id="scalingCanvas"></canvas></div>
+    </div>
+
+    <div class="sub-heading">학습 데이터: 양에서 질로</div>
+    <div class="paradigm-grid" style="grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));">
+      <div class="paradigm-card">
+        <div class="p-icon">&#128200;</div>
+        <div class="p-before">GPT-3: 300B 토큰</div>
+        <div class="p-after">Qwen3-0.6B: 36T 토큰</div>
+        <div class="p-label">규모의 변화</div>
+      </div>
+      <div class="paradigm-card">
+        <div class="p-icon">&#129302;</div>
+        <div class="p-before">실제 데이터만 사용</div>
+        <div class="p-after">합성 데이터의 부상</div>
+        <div class="p-label">Phi 시리즈: 14B로 70B급 성능</div>
+      </div>
+      <div class="paradigm-card">
+        <div class="p-icon">&#9888;</div>
+        <div class="p-before">인터넷 데이터 충분</div>
+        <div class="p-after">데이터 고갈 문제</div>
+        <div class="p-label">합성+멀티모달 데이터 중요성 급부상</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== 2.9 발전 속도 ===================== -->
+<section class="content-section" id="s29">
+  <div class="container">
+    <div class="section-badge"><div class="dot"></div>SECTION 2.9</div>
+    <h2 class="section-title">발전 속도</h2>
+    <p class="section-summary">6개월이면 세상이 바뀐다 -- AI 업계의 발전 속도는 다른 기술 분야와 비교불가</p>
+
+    <div class="sub-heading">매 반기마다 가속하는 모델 출시</div>
+    <table class="data-table">
+      <thead><tr><th>기간</th><th>출시 수</th><th>대표 모델</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--c-accent);">2023 상반기</td><td>~5개</td><td>GPT-4, Claude 1, LLaMA 1, PaLM 2</td></tr>
+        <tr><td style="color:var(--c-accent);">2023 하반기</td><td>~8개</td><td>GPT-4 Turbo, Claude 2, LLaMA 2, Mistral 7B, Gemini 1.0</td></tr>
+        <tr><td style="color:var(--c-accent);">2024 상반기</td><td>~10개</td><td>Claude 3, GPT-4o, Gemini 1.5, LLaMA 3, Phi-3</td></tr>
+        <tr><td style="color:var(--c-accent);">2024 하반기</td><td>~12개</td><td>o1, Claude 3.5, Gemini 2.0 Flash, DeepSeek-V3, Phi-4</td></tr>
+        <tr><td style="color:var(--c-accent);">2025 상반기</td><td>~15개+</td><td>o3, DeepSeek-R1, Claude 3.7, Gemini 2.5, LLaMA 4, GPT-4.5, Claude 4</td></tr>
+        <tr><td style="color:var(--c-accent);">2025 하반기</td><td>~15개+</td><td>GPT-5, DeepSeek-V3.1/V3.2, Claude Opus 4.5</td></tr>
+        <tr><td style="color:var(--c-accent);">2026 초</td><td>이미 5개+</td><td>Claude 4.6, Sonnet 4.6, Gemini 3.1 Pro, Qwen 3.5</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sub-heading">"6개월 전 최고 모델이 지금은 중급"</div>
+    <div class="concept-card">
+      <div class="card-label">2024.03</div>
+      <div class="card-title">Claude 3 Opus: 불과 3개월 후 절반 비용 모델에 추월당함</div>
+      <div class="card-desc">Claude 3.5 Sonnet이 절반의 비용으로 Opus를 넘어섬</div>
+    </div>
+    <div class="concept-card">
+      <div class="card-label">2024.09</div>
+      <div class="card-title">o1: "생각하는 AI"로 화제 &rarr; 4개월 후 o3에 의해 "기본 수준"으로 격하</div>
+      <div class="card-desc">추론 모델의 세대 교체 속도가 극단적으로 빨라짐</div>
+    </div>
+    <div class="concept-card">
+      <div class="card-label">2023.03 ~ 2025.04</div>
+      <div class="card-title">GPT-4: "인간 수준 AI"라는 찬사 &rarr; 2년 후 ChatGPT에서 퇴출</div>
+      <div class="card-desc">GPT-4o로 대체. 최고 모델의 수명이 극적으로 단축됨</div>
+    </div>
+
+    <div class="sub-heading">벤치마크 MMLU 점수 변화</div>
+    <div class="bench-timeline" id="bench-timeline">
+      <div class="bench-row">
+        <div class="bench-year">2020</div>
+        <div class="bench-track"><div class="bench-fill" data-width="43" style="background: linear-gradient(90deg, #e74c3c, #c0392b);">43%</div></div>
+        <div class="bench-model">GPT-3</div>
+      </div>
+      <div class="bench-row">
+        <div class="bench-year">2022</div>
+        <div class="bench-track"><div class="bench-fill" data-width="70" style="background: linear-gradient(90deg, #e67e22, #d35400);">70%</div></div>
+        <div class="bench-model">GPT-3.5</div>
+      </div>
+      <div class="bench-row">
+        <div class="bench-year">2023</div>
+        <div class="bench-track"><div class="bench-fill" data-width="86" style="background: linear-gradient(90deg, var(--c-purple), #8e44ad);">86%</div></div>
+        <div class="bench-model">GPT-4</div>
+      </div>
+      <div class="bench-row">
+        <div class="bench-year">2024</div>
+        <div class="bench-track"><div class="bench-fill" data-width="87" style="background: linear-gradient(90deg, var(--c-blue), #2980b9);">86.8%</div></div>
+        <div class="bench-model">Claude 3 Opus</div>
+      </div>
+      <div class="bench-row">
+        <div class="bench-year">2025~26</div>
+        <div class="bench-track"><div class="bench-fill" data-width="92" style="background: linear-gradient(90deg, #00D4AA, #00b894);">~90~92%</div></div>
+        <div class="bench-model">최신 모델 (포화)</div>
+      </div>
+    </div>
+
+    <div class="quote-box">새로운 벤치마크가 만들어지자마자 1~2년 내에 최고 점수에 근접하는 모델이 등장합니다. <strong>시험지를 어렵게 만들어도, AI가 곧바로 만점에 가까운 성적</strong>을 받아버리는 상황입니다.</div>
+
+    <div class="sub-heading">더 어려운 벤치마크들</div>
+    <div class="paradigm-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+      <div class="paradigm-card">
+        <div class="p-icon">&#128218;</div>
+        <div class="p-after">MMLU-Pro</div>
+        <div class="p-label">선택지 10개, 추론 집약적</div>
+      </div>
+      <div class="paradigm-card">
+        <div class="p-icon">&#129514;</div>
+        <div class="p-after">GPQA Diamond</div>
+        <div class="p-label">대학원 수준 과학 문제</div>
+      </div>
+      <div class="paradigm-card">
+        <div class="p-icon">&#128187;</div>
+        <div class="p-after">SWE-bench</div>
+        <div class="p-label">실제 소프트웨어 엔지니어링</div>
+      </div>
+      <div class="paradigm-card">
+        <div class="p-icon">&#128290;</div>
+        <div class="p-after">AIME 2025</div>
+        <div class="p-label">수학 올림피아드 수준</div>
+      </div>
+      <div class="paradigm-card">
+        <div class="p-icon">&#128161;</div>
+        <div class="p-after">LiveCodeBench</div>
+        <div class="p-label">실시간 업데이트 코딩</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== 2.10 정리 ===================== -->
+<section class="content-section" id="s210">
+  <div class="container">
+    <div class="section-badge"><div class="dot"></div>SECTION 2.10</div>
+    <h2 class="section-title">"더 크게"에서 "더 스마트하게"로</h2>
+    <p class="section-summary">2023~2026 AI 기술 진화의 핵심 요약</p>
+
+    <div class="paradigm-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+      <div class="paradigm-card">
+        <div class="p-icon">&#129518;</div>
+        <div class="p-before">무조건 키우기</div>
+        <div class="p-after">MoE로 효율적 확장</div>
+        <div class="p-label">모델 크기</div>
+      </div>
+      <div class="paradigm-card">
+        <div class="p-icon">&#128202;</div>
+        <div class="p-before">데이터 양</div>
+        <div class="p-after">데이터 품질 + 합성</div>
+        <div class="p-label">학습 전략</div>
+      </div>
+      <div class="paradigm-card">
+        <div class="p-icon">&#128640;</div>
+        <div class="p-before">학습 시간 스케일링만</div>
+        <div class="p-after">학습 + 추론 스케일링</div>
+        <div class="p-label">성능 향상 축</div>
+      </div>
+      <div class="paradigm-card">
+        <div class="p-icon">&#128170;</div>
+        <div class="p-before">RLHF (복잡)</div>
+        <div class="p-after">DPO (단순/안정)</div>
+        <div class="p-label">정렬 기술</div>
+      </div>
+      <div class="paradigm-card">
+        <div class="p-icon">&#127912;</div>
+        <div class="p-before">텍스트 전용</div>
+        <div class="p-after">네이티브 멀티모달</div>
+        <div class="p-label">입출력</div>
+      </div>
+    </div>
+
+    <div class="quote-box" style="margin-top:40px;">
+      AI는 더 이상 "큰 것이 좋은 것"이 아닙니다. 같은 크기라도 <strong>얼마나 똑똑하게 학습하고, 얼마나 효율적으로 추론하느냐</strong>가 성능을 결정하는 시대입니다. 스마트폰에서도 돌아가는 SLM, 한 번에 프로젝트 전체를 이해하는 긴 컨텍스트, 단계별로 논리적 사고를 하는 추론 모델 -- 이 모든 기술이 여러분의 일상 업무 도구가 되고 있습니다.
+    </div>
+
+    <p class="body-text" style="margin-top: 40px; text-align: center; font-size: 16px; color: var(--text-primary);">다음 장에서는 이러한 기술 원리 위에서 벌어지고 있는 AI 모델들의 치열한 경쟁,<br><strong>"AI 모델 전쟁"</strong>을 살펴보겠습니다.</p>
+  </div>
+</section>
+
+<!-- Footer Nav -->
+<div class="footer-nav">
+  <a href="ch1.html">&larr; Ch1. 3년의 혁명</a>
+  <a href="index.html">🏠 홈</a>
+  <a href="ch3.html">Ch3. AI 모델 전쟁 &rarr;</a>
+</div>
+<div class="footer">
+  <p>AI 트렌드 온보딩 완벽 가이드 &mdash; Ch2. AI는 어떻게 생각하는가</p>
+</div>
+
+<script>
+// ===== PARTICLE SYSTEM =====
+(function() {
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+  const COUNT = 70;
+
+  function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+  resize();
+  addEventListener('resize', resize);
+
+  for (let i = 0; i < COUNT; i++) {
+    particles.push({
+      x: Math.random()*W, y: Math.random()*H,
+      r: Math.random()*2.2+0.5,
+      vx: (Math.random()-0.5)*0.25, vy: (Math.random()-0.5)*0.25,
+      alpha: Math.random()*0.45+0.1,
+      ps: Math.random()*0.02+0.005, pp: Math.random()*Math.PI*2
+    });
+  }
+
+  let sp = 0;
+  addEventListener('scroll', () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    sp = max > 0 ? scrollY / max : 0;
+  });
+
+  let f = 0;
+  function animate() {
+    f++;
+    ctx.clearRect(0, 0, W, H);
+    const r = Math.round(155 + (52-155)*sp);
+    const g = Math.round(89 + (152-89)*sp);
+    const b = Math.round(182 + (219-182)*sp);
+
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if(p.x<0) p.x=W; if(p.x>W) p.x=0;
+      if(p.y<0) p.y=H; if(p.y>H) p.y=0;
+      const pulse = Math.sin(f*p.ps+p.pp)*0.3+0.7;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r*pulse, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(${r},${g},${b},${p.alpha*pulse})`;
+      ctx.fill();
+    });
+
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const dx=particles[i].x-particles[j].x, dy=particles[i].y-particles[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<110){
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x,particles[i].y);
+          ctx.lineTo(particles[j].x,particles[j].y);
+          ctx.strokeStyle=`rgba(${r},${g},${b},${0.05*(1-d/110)})`;
+          ctx.lineWidth=0.5; ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+// ===== GRADIENT BG =====
+const gradBg = document.getElementById('gradientBg');
+addEventListener('scroll', () => {
+  const max = document.documentElement.scrollHeight - innerHeight;
+  const p = max > 0 ? scrollY / max : 0;
+  const r1 = Math.round(155*(1-p)+52*p);
+  const g1 = Math.round(89*(1-p)+152*p);
+  const b1 = Math.round(182*(1-p)+219*p);
+  gradBg.style.background = `radial-gradient(ellipse at ${30+p*40}% 50%, rgba(${r1},${g1},${b1},0.25) 0%, transparent 70%)`;
+});
+
+// ===== GSAP =====
+gsap.registerPlugin(ScrollTrigger);
+
+// Hero
+gsap.from('.hero-chapter', {opacity:0,y:30,duration:1,delay:0.2});
+gsap.from('.hero-oneliner', {opacity:0,y:20,duration:0.8,delay:0.4});
+gsap.from('.hero-title', {opacity:0,y:50,duration:1.2,delay:0.6});
+gsap.from('.hero-desc', {opacity:0,y:30,duration:1,delay:0.9});
+gsap.from('.scroll-indicator', {opacity:0,duration:1,delay:1.3});
+gsap.to('.hero',{opacity:0,y:-100,scrollTrigger:{trigger:'.hero',start:'center center',end:'bottom top',scrub:1}});
+
+// Content sections
+document.querySelectorAll('.content-section').forEach(sec => {
+  const badge = sec.querySelector('.section-badge');
+  const title = sec.querySelector('.section-title');
+  const summary = sec.querySelector('.section-summary');
+  if(badge) gsap.from(badge,{opacity:0,x:-40,duration:0.8,scrollTrigger:{trigger:sec,start:'top 80%',toggleActions:'play none none reverse'}});
+  if(title) gsap.from(title,{opacity:0,y:40,duration:0.8,delay:0.1,scrollTrigger:{trigger:sec,start:'top 80%',toggleActions:'play none none reverse'}});
+  if(summary) gsap.from(summary,{opacity:0,y:30,duration:0.8,delay:0.2,scrollTrigger:{trigger:sec,start:'top 80%',toggleActions:'play none none reverse'}});
+
+  sec.querySelectorAll('.concept-card').forEach((c,i) => {
+    gsap.from(c,{opacity:0,y:50,duration:0.7,delay:i*0.1,scrollTrigger:{trigger:c,start:'top 85%',toggleActions:'play none none reverse'}});
+  });
+  sec.querySelectorAll('.data-table tbody tr').forEach((tr,i) => {
+    gsap.from(tr,{opacity:0,x:-30,duration:0.5,delay:i*0.05,scrollTrigger:{trigger:tr,start:'top 90%',toggleActions:'play none none reverse'}});
+  });
+  sec.querySelectorAll('.sub-heading').forEach(h => {
+    gsap.from(h,{opacity:0,y:30,duration:0.6,scrollTrigger:{trigger:h,start:'top 85%',toggleActions:'play none none reverse'}});
+  });
+  sec.querySelectorAll('.body-text').forEach(p => {
+    gsap.from(p,{opacity:0,y:20,duration:0.6,scrollTrigger:{trigger:p,start:'top 88%',toggleActions:'play none none reverse'}});
+  });
+  sec.querySelectorAll('.viz-container').forEach(v => {
+    gsap.from(v,{opacity:0,y:40,duration:0.8,scrollTrigger:{trigger:v,start:'top 85%',toggleActions:'play none none reverse'}});
+  });
+  sec.querySelectorAll('.quote-box').forEach(q => {
+    gsap.from(q,{opacity:0,y:30,duration:0.8,scrollTrigger:{trigger:q,start:'top 85%',toggleActions:'play none none reverse'}});
+  });
+});
+
+// Card grids
+document.querySelectorAll('.paradigm-card, .slm-card, .speed-card, .compare-card').forEach((c,i) => {
+  gsap.from(c,{opacity:0,y:40,scale:0.95,duration:0.6,delay:(i%4)*0.08,scrollTrigger:{trigger:c,start:'top 88%',toggleActions:'play none none reverse'}});
+});
+
+// Context bars
+document.querySelectorAll('.ctx-fill').forEach((bar,i) => {
+  gsap.to(bar,{width:bar.dataset.width+'%',duration:1.2,delay:i*0.15,ease:'power3.out',scrollTrigger:{trigger:bar.closest('.ctx-bars'),start:'top 80%',toggleActions:'play none none reset'}});
+});
+
+// Benchmark bars
+document.querySelectorAll('.bench-fill').forEach((bar,i) => {
+  gsap.to(bar,{width:bar.dataset.width+'%',duration:1.2,delay:i*0.15,ease:'power3.out',scrollTrigger:{trigger:bar.closest('.bench-timeline'),start:'top 80%',toggleActions:'play none none reset'}});
+});
+
+// ===== SIDE NAV =====
+const navSections = [
+  {id:'hero',sec:'hero'},{id:'s21',sec:'s21'},{id:'s22',sec:'s22'},
+  {id:'s23',sec:'s23'},{id:'s24',sec:'s24'},{id:'s25',sec:'s25'},
+  {id:'s26',sec:'s26'},{id:'s27',sec:'s27'},{id:'s28',sec:'s28'},
+  {id:'s29',sec:'s29'},{id:'s210',sec:'s210'}
+];
+const navDots = document.querySelectorAll('#side-nav .nav-dot');
+const navLines = document.querySelectorAll('#side-nav .nav-line');
+
+function updateNav() {
+  const sy = scrollY + innerHeight/3;
+  let idx = 0;
+  navSections.forEach((s,i) => {
+    const el = document.getElementById(s.id);
+    if(el && el.offsetTop <= sy) idx = i;
+  });
+  navDots.forEach((d,i) => d.classList.toggle('active', i===idx));
+  navLines.forEach((l,i) => l.classList.toggle('active', i<idx));
+}
+addEventListener('scroll', updateNav);
+updateNav();
+
+function smoothScroll(id) {
+  const el = document.getElementById(id);
+  if(el) scrollTo({top:el.offsetTop, behavior:'smooth'});
+}
+
+// ===== RNN vs TRANSFORMER ANIMATION =====
+let rnnAnimId, transAnimId;
+function startRnnTransformer() {
+  // RNN animation
+  const rnnBox = document.getElementById('rnn-anim');
+  rnnBox.innerHTML = '<canvas width="'+rnnBox.offsetWidth+'" height="180"></canvas>';
+  const rc = rnnBox.querySelector('canvas').getContext('2d');
+  const rw = rnnBox.offsetWidth, rh = 180;
+  rnnBox.querySelector('canvas').width = rw;
+  const words = ['은행','에서','돈','을','인출','했다'];
+  const positions = words.map((_,i) => ({x: 30 + i*(rw-60)/(words.length-1), y: rh/2}));
+  let rnnStep = -1, rnnFrame = 0;
+
+  function drawRNN() {
+    rnnFrame++;
+    if(rnnFrame % 30 === 0 && rnnStep < words.length-1) rnnStep++;
+    rc.clearRect(0,0,rw,rh);
+
+    // Draw arrows
+    for(let i=0;i<words.length-1;i++){
+      const alpha = i < rnnStep ? 0.6 : 0.1;
+      rc.beginPath();
+      rc.moveTo(positions[i].x+20, positions[i].y);
+      rc.lineTo(positions[i+1].x-20, positions[i+1].y);
+      rc.strokeStyle = `rgba(231,76,60,${alpha})`;
+      rc.lineWidth = 2; rc.stroke();
+      // arrow head
+      rc.beginPath();
+      rc.moveTo(positions[i+1].x-20, positions[i+1].y-5);
+      rc.lineTo(positions[i+1].x-12, positions[i+1].y);
+      rc.lineTo(positions[i+1].x-20, positions[i+1].y+5);
+      rc.fillStyle = `rgba(231,76,60,${alpha})`;
+      rc.fill();
+    }
+
+    // Draw nodes
+    positions.forEach((p,i) => {
+      const active = i <= rnnStep;
+      const fade = active ? Math.max(0.3, 1-(rnnStep-i)*0.2) : 0.2;
+      rc.beginPath();
+      rc.arc(p.x, p.y, 18, 0, Math.PI*2);
+      rc.fillStyle = active ? `rgba(231,76,60,${fade})` : 'rgba(255,255,255,0.05)';
+      rc.fill();
+      rc.strokeStyle = active ? `rgba(231,76,60,${fade+0.2})` : 'rgba(255,255,255,0.15)';
+      rc.lineWidth = 2; rc.stroke();
+      rc.fillStyle = active ? `rgba(255,255,255,${fade})` : 'rgba(255,255,255,0.3)';
+      rc.font = '12px Noto Sans KR'; rc.textAlign = 'center'; rc.textBaseline = 'middle';
+      rc.fillText(words[i], p.x, p.y);
+    });
+
+    if(rnnStep < words.length) rnnAnimId = requestAnimationFrame(drawRNN);
+  }
+  drawRNN();
+
+  // Transformer animation
+  const tBox = document.getElementById('transformer-anim');
+  tBox.innerHTML = '<canvas width="'+tBox.offsetWidth+'" height="180"></canvas>';
+  const tc = tBox.querySelector('canvas').getContext('2d');
+  const tw = tBox.offsetWidth;
+  tBox.querySelector('canvas').width = tw;
+  const tPos = words.map((_,i) => ({x: 30 + i*(tw-60)/(words.length-1), y: rh/2}));
+  let tFrame = 0, tActive = false;
+
+  function drawTransformer() {
+    tFrame++;
+    if(tFrame > 60) tActive = true;
+    tc.clearRect(0,0,tw,rh);
+
+    // Draw all connections simultaneously
+    if(tActive) {
+      const intensity = Math.min(1, (tFrame-60)/40);
+      for(let i=0;i<words.length;i++){
+        for(let j=i+1;j<words.length;j++){
+          // highlight "은행"-"돈" and "은행"-"인출"
+          const highlight = (i===0 && (j===2||j===4));
+          const alpha = highlight ? intensity*0.8 : intensity*0.2;
+          const lw = highlight ? 3 : 1;
+          tc.beginPath();
+          tc.moveTo(tPos[i].x, tPos[i].y);
+          tc.lineTo(tPos[j].x, tPos[j].y);
+          tc.strokeStyle = highlight ? `rgba(46,204,113,${alpha})` : `rgba(46,204,113,${alpha})`;
+          tc.lineWidth = lw; tc.stroke();
+        }
+      }
+    }
+
+    // Draw nodes
+    tPos.forEach((p,i) => {
+      const active = tActive;
+      tc.beginPath();
+      tc.arc(p.x, p.y, 18, 0, Math.PI*2);
+      tc.fillStyle = active ? 'rgba(46,204,113,0.3)' : 'rgba(255,255,255,0.05)';
+      tc.fill();
+      const highlight = tActive && (i===0||i===2||i===4);
+      tc.strokeStyle = highlight ? 'rgba(46,204,113,0.9)' : (active ? 'rgba(46,204,113,0.5)' : 'rgba(255,255,255,0.15)');
+      tc.lineWidth = highlight ? 3 : 2; tc.stroke();
+      tc.fillStyle = active ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)';
+      tc.font = '12px Noto Sans KR'; tc.textAlign = 'center'; tc.textBaseline = 'middle';
+      tc.fillText(words[i], p.x, p.y);
+    });
+
+    if(tFrame < 180) transAnimId = requestAnimationFrame(drawTransformer);
+  }
+  drawTransformer();
+}
+
+function restartRnnTransformer() {
+  cancelAnimationFrame(rnnAnimId);
+  cancelAnimationFrame(transAnimId);
+  startRnnTransformer();
+}
+
+// Start when visible
+ScrollTrigger.create({
+  trigger: '#rnn-transformer-viz',
+  start: 'top 80%',
+  onEnter: () => startRnnTransformer(),
+  once: true
+});
+
+// ===== MoE INTERACTIVE =====
+const expertMap = {
+  code: ['code','general'],
+  math: ['math','general'],
+  lang: ['lang','general'],
+  random: ['code','math','lang','general']
+};
+const moeMessages = {
+  code: 'Router가 코딩 전문가와 일반 지식 전문가를 활성화했습니다 (2/4 전문가 사용)',
+  math: 'Router가 수학 전문가와 일반 지식 전문가를 활성화했습니다 (2/4 전문가 사용)',
+  lang: 'Router가 언어 전문가와 일반 지식 전문가를 활성화했습니다 (2/4 전문가 사용)',
+  random: '모든 전문가가 활성화되었습니다 (실제로는 소수만 활성화됨)'
+};
+
+function routeMoE(type) {
+  const experts = document.querySelectorAll('.moe-expert');
+  experts.forEach(e => e.classList.remove('active'));
+  const actives = expertMap[type] || [];
+  setTimeout(() => {
+    experts.forEach(e => {
+      if(actives.includes(e.dataset.type)) e.classList.add('active');
+    });
+    document.getElementById('moe-status').textContent = moeMessages[type];
+    // Animate arrow lines
+    const arrowsOut = document.querySelectorAll('#moe-arrows-out .moe-arrow-line');
+    arrowsOut.forEach((a,i) => {
+      const expert = experts[i];
+      if(expert && actives.includes(expert.dataset.type)) {
+        a.style.background = 'linear-gradient(90deg, var(--c-purple), var(--c-blue))';
+        a.querySelector('::after') // can't directly style pseudo, use class
+      } else {
+        a.style.background = 'rgba(255,255,255,0.1)';
+      }
+    });
+  }, 200);
+}
+
+// ===== MULTIMODAL TOGGLE =====
+function toggleMM(el) {
+  el.classList.toggle('active');
+}
+
+// ===== SCALING CHART =====
+ScrollTrigger.create({
+  trigger: '#scaling-chart',
+  start: 'top 80%',
+  onEnter: drawScalingChart,
+  once: true
+});
+
+function drawScalingChart() {
+  const canvas = document.getElementById('scalingCanvas');
+  const container = document.getElementById('scaling-chart');
+  const w = container.offsetWidth;
+  const h = 320;
+  canvas.width = w; canvas.height = h;
+  canvas.style.width = w+'px'; canvas.style.height = h+'px';
+  const ctx = canvas.getContext('2d');
+
+  const data = [
+    {year:'2018', model:'GPT-1', params:0.117, color:'#e74c3c'},
+    {year:'2019', model:'GPT-2', params:1.5, color:'#e67e22'},
+    {year:'2020', model:'GPT-3', params:175, color:'#f1c40f'},
+    {year:'2022', model:'PaLM', params:540, color:'#9B59B6'},
+    {year:'2023', model:'GPT-4', params:1700, color:'#3498DB'},
+    {year:'2024', model:'DSV3', params:671, color:'#1abc9c'},
+    {year:'2025', model:'DSV3.2', params:685, color:'#00D4AA'}
+  ];
+
+  const padL = 60, padR = 30, padT = 30, padB = 60;
+  const chartW = w - padL - padR;
+  const chartH = h - padT - padB;
+
+  // Log scale
+  const minLog = Math.log10(0.1);
+  const maxLog = Math.log10(2000);
+
+  function yForParam(p) {
+    const log = Math.log10(p);
+    return padT + chartH * (1 - (log - minLog) / (maxLog - minLog));
+  }
+
+  // Grid lines
+  const gridVals = [0.1, 1, 10, 100, 1000];
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1;
+  gridVals.forEach(v => {
+    const y = yForParam(v);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w-padR, y); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '11px Noto Sans KR'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.fillText(v >= 1 ? v+'B' : (v*1000)+'M', padL-8, y);
+  });
+
+  // Animate points
+  let progress = 0;
+  function animateChart() {
+    progress += 0.015;
+    if(progress > 1) progress = 1;
+
+    // Clear chart area
+    ctx.clearRect(padL, 0, chartW+padR, h);
+    // Redraw grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    gridVals.forEach(v => {
+      const y = yForParam(v);
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w-padR, y); ctx.stroke();
+    });
+
+    const visibleCount = Math.ceil(progress * data.length);
+
+    // Draw line
+    ctx.beginPath();
+    for(let i = 0; i < visibleCount && i < data.length; i++) {
+      const x = padL + (i / (data.length-1)) * chartW;
+      const y = yForParam(data[i].params);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle = 'rgba(155,89,182,0.6)';
+    ctx.lineWidth = 2; ctx.stroke();
+
+    // Draw points
+    for(let i = 0; i < visibleCount && i < data.length; i++) {
+      const x = padL + (i / (data.length-1)) * chartW;
+      const y = yForParam(data[i].params);
+      ctx.beginPath();
+      ctx.arc(x, y, 6, 0, Math.PI*2);
+      ctx.fillStyle = data[i].color;
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.lineWidth = 1.5; ctx.stroke();
+
+      // Label
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 11px Noto Sans KR';
+      ctx.textAlign = 'center';
+      ctx.fillText(data[i].model, x, y - 16);
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.font = '10px Noto Sans KR';
+      ctx.fillText(data[i].year, x, padT + chartH + 20);
+
+      // MoE label for 2024+
+      if(data[i].params < 700 && i >= 5) {
+        ctx.fillStyle = 'rgba(0,212,170,0.7)';
+        ctx.font = '9px Noto Sans KR';
+        ctx.fillText('(37B active)', x, y + 16);
+      }
+    }
+
+    if(progress < 1) requestAnimationFrame(animateChart);
+  }
+  animateChart();
+}
+</script>
+</body>
+</html>
